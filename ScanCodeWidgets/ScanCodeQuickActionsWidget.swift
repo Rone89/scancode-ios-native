@@ -53,6 +53,8 @@ private struct ScanCodeQuickActionsWidgetView: View {
             systemMedium
         case .systemLarge:
             systemLarge
+        case .systemExtraLarge:
+            systemLarge
         case .accessoryInline:
             accessoryInline
         case .accessoryCircular:

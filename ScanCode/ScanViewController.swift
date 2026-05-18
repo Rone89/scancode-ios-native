@@ -450,19 +450,26 @@ private extension ScanViewController {
     }
 
     func updatePreviewOrientation() {
-        guard let connection = previewLayer?.connection, connection.isVideoOrientationSupported else { return }
+        guard let connection = previewLayer?.connection else { return }
 
-        switch view.window?.windowScene?.interfaceOrientation {
+        let interfaceOrientation = view.window?.windowScene?.effectiveGeometry.interfaceOrientation ?? .portrait
+        let rotationAngle: CGFloat
+
+        switch interfaceOrientation {
         case .portrait:
-            connection.videoOrientation = .portrait
+            rotationAngle = 90
         case .portraitUpsideDown:
-            connection.videoOrientation = .portraitUpsideDown
+            rotationAngle = 270
         case .landscapeLeft:
-            connection.videoOrientation = .landscapeLeft
+            rotationAngle = 0
         case .landscapeRight:
-            connection.videoOrientation = .landscapeRight
+            rotationAngle = 180
         default:
-            connection.videoOrientation = .portrait
+            rotationAngle = 90
+        }
+
+        if connection.isVideoRotationAngleSupported(rotationAngle) {
+            connection.videoRotationAngle = rotationAngle
         }
     }
 
@@ -606,7 +613,7 @@ private extension ScanViewController {
         }
     }
 
-    func route(for qrCodeString: String) -> PaymentRoute {
+    private func route(for qrCodeString: String) -> PaymentRoute {
         let lowercasedString = qrCodeString.lowercased()
 
         if isWeChatQRCode(lowercasedString) {
