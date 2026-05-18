@@ -527,21 +527,18 @@ private extension ScanViewController {
     }
 
     func showGeneralQRCodeActionSheet(for qrCodeString: String) {
-        let alert = UIAlertController(
-            title: "请选择打开方式",
-            message: nil,
-            preferredStyle: .actionSheet
-        )
+        let alert = UIAlertController(title: "请选择", message: nil, preferredStyle: .actionSheet)
         alert.view.tintColor = .systemBlue
 
-        // 通用二维码无法只靠当前 App 准确判断后续业务。
-        // 选择微信后，直接拉起微信扫一扫，让微信继续处理扫码流程。
-        let weChatAction = UIAlertAction(title: "微信扫一扫", style: .default) { [weak self] _ in
+        // 通用型二维码 / 聚合二维码无法只靠当前 App 准确判断目标平台。
+        // 用户选择“微信”后，直接执行微信相关二维码的处理路径：拉起微信扫一扫。
+        let weChatAction = UIAlertAction(title: "微信", style: .default) { [weak self] _ in
             self?.openWeChatScanner()
         }
         alert.addAction(weChatAction)
 
-        // 选择支付宝后，将原始二维码内容作为 qrcode 参数交给支付宝处理。
+        // 用户选择“支付宝”后，直接执行支付宝相关二维码的处理路径：
+        // 把原始二维码内容编码后交给支付宝客户端继续解析。
         let alipayAction = UIAlertAction(title: "支付宝", style: .default) { [weak self] _ in
             self?.openAlipayQRCode(qrCodeString)
         }
