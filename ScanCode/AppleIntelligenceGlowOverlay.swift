@@ -3,37 +3,15 @@ import UIKit
 
 final class AppleIntelligenceGlowOverlayView: UIView {
 
-    private struct GlowSegment {
-        let layer: CAShapeLayer
-        let placement: SegmentPlacement
-        let lineWidth: CGFloat
-        let dashFraction: CGFloat
-        let phaseFraction: CGFloat
-        let duration: CFTimeInterval
-        let opacity: Float
-        let shadowOpacity: Float
-        let shadowRadius: CGFloat
-    }
-
-    private enum SegmentPlacement {
-        case ambient
-        case glass
-    }
-
-    private struct EdgeLightProfile {
-        let ambientOutset: CGFloat
-        let ambientCornerRadius: CGFloat
-        let ambientWidthScale: CGFloat
-        let ambientDashScale: CGFloat
-        let ambientShadowScale: CGFloat
-        let glassInset: CGFloat
-        let glassCornerRadius: CGFloat
-        let glassWidthScale: CGFloat
-        let glassDashScale: CGFloat
-    }
-
-    private var ambientSegments: [GlowSegment] = []
-    private var glassSegments: [GlowSegment] = []
+    private let marqueeLayer = CAGradientLayer()
+    private let softBloomLayer = CAGradientLayer()
+    private let glassLayer = CAGradientLayer()
+    private let marqueeMask = CAShapeLayer()
+    private let softBloomMask = CAShapeLayer()
+    private let glassMask = CAShapeLayer()
+    private var baseBloomOpacity: Float = 0
+    private var baseGlowOpacity: Float = 0
+    private var baseGlassOpacity: Float = 0
 
     private var reduceMotion: Bool {
         UIAccessibility.isReduceMotionEnabled
@@ -42,7 +20,7 @@ final class AppleIntelligenceGlowOverlayView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         configureView()
-        configureSegments()
+        configureGradientLayers()
         installReduceMotionObserver()
         updateMotionState()
     }
@@ -50,7 +28,7 @@ final class AppleIntelligenceGlowOverlayView: UIView {
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         configureView()
-        configureSegments()
+        configureGradientLayers()
         installReduceMotionObserver()
         updateMotionState()
     }
@@ -61,7 +39,7 @@ final class AppleIntelligenceGlowOverlayView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        updateSegmentGeometry()
+        updateLayerGeometry()
     }
 
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
@@ -71,6 +49,17 @@ final class AppleIntelligenceGlowOverlayView: UIView {
 
 private extension AppleIntelligenceGlowOverlayView {
 
+    struct EdgeLightMetrics {
+        let pathBounds: CGRect
+        let cornerRadius: CGFloat
+        let marqueeWidth: CGFloat
+        let bloomWidth: CGFloat
+        let glassWidth: CGFloat
+        let glowOpacity: Float
+        let bloomOpacity: Float
+        let glassOpacity: Float
+    }
+
     func configureView() {
         backgroundColor = .clear
         isOpaque = false
@@ -78,137 +67,35 @@ private extension AppleIntelligenceGlowOverlayView {
         clipsToBounds = true
     }
 
-    func configureSegments() {
-        ambientSegments = [
-            ambientSegment(
-                color: UIColor(red: 0.16, green: 0.70, blue: 1.00, alpha: 1),
-                lineWidth: 108,
-                dashFraction: 0.19,
-                phaseFraction: 0.02,
-                duration: 13.5,
-                opacity: 0.18
-            ),
-            ambientSegment(
-                color: UIColor(red: 0.86, green: 0.34, blue: 1.00, alpha: 1),
-                lineWidth: 98,
-                dashFraction: 0.16,
-                phaseFraction: 0.24,
-                duration: 15.0,
-                opacity: 0.16
-            ),
-            ambientSegment(
-                color: UIColor(red: 1.00, green: 0.35, blue: 0.72, alpha: 1),
-                lineWidth: 102,
-                dashFraction: 0.17,
-                phaseFraction: 0.46,
-                duration: 14.2,
-                opacity: 0.15
-            ),
-            ambientSegment(
-                color: UIColor(red: 0.22, green: 1.00, blue: 0.82, alpha: 1),
-                lineWidth: 92,
-                dashFraction: 0.14,
-                phaseFraction: 0.66,
-                duration: 16.0,
-                opacity: 0.14
-            ),
-            ambientSegment(
-                color: UIColor(red: 1.00, green: 0.82, blue: 0.30, alpha: 1),
-                lineWidth: 84,
-                dashFraction: 0.11,
-                phaseFraction: 0.84,
-                duration: 17.5,
-                opacity: 0.10
-            )
-        ]
+    func configureGradientLayers() {
+        configureConicLayer(softBloomLayer)
+        configureConicLayer(marqueeLayer)
+        configureConicLayer(glassLayer)
 
-        glassSegments = [
-            glassSegment(dashFraction: 0.070, phaseFraction: 0.08, duration: 9.0, opacity: 0.34),
-            glassSegment(dashFraction: 0.046, phaseFraction: 0.52, duration: 11.0, opacity: 0.24),
-            glassSegment(dashFraction: 0.058, phaseFraction: 0.76, duration: 12.5, opacity: 0.20)
-        ]
+        softBloomLayer.colors = appleIntelligenceColors(alphaScale: 0.34)
+        marqueeLayer.colors = appleIntelligenceColors(alphaScale: 0.62)
+        glassLayer.colors = glassHighlightColors()
 
-        (ambientSegments + glassSegments).forEach { segment in
-            layer.addSublayer(segment.layer)
-        }
+        softBloomLayer.locations = numberValues([0.00, 0.06, 0.13, 0.20, 0.31, 0.42, 0.52, 0.63, 0.76, 0.88, 1.00])
+        marqueeLayer.locations = softBloomLayer.locations
+        glassLayer.locations = numberValues([0.00, 0.045, 0.075, 0.12, 0.34, 0.58, 0.62, 0.68, 1.00])
+
+        softBloomLayer.mask = softBloomMask
+        marqueeLayer.mask = marqueeMask
+        glassLayer.mask = glassMask
+
+        layer.addSublayer(softBloomLayer)
+        layer.addSublayer(marqueeLayer)
+        layer.addSublayer(glassLayer)
     }
 
-    private func ambientSegment(
-        color: UIColor,
-        lineWidth: CGFloat,
-        dashFraction: CGFloat,
-        phaseFraction: CGFloat,
-        duration: CFTimeInterval,
-        opacity: Float
-    ) -> GlowSegment {
-        makeSegment(
-            color: color,
-            placement: .ambient,
-            lineWidth: lineWidth,
-            dashFraction: dashFraction,
-            phaseFraction: phaseFraction,
-            duration: duration,
-            opacity: opacity,
-            shadowOpacity: min(opacity + 0.12, 0.38),
-            shadowRadius: lineWidth * 0.42
-        )
-    }
-
-    private func glassSegment(
-        dashFraction: CGFloat,
-        phaseFraction: CGFloat,
-        duration: CFTimeInterval,
-        opacity: Float
-    ) -> GlowSegment {
-        makeSegment(
-            color: UIColor(red: 0.92, green: 0.98, blue: 1.00, alpha: 1),
-            placement: .glass,
-            lineWidth: 2.4,
-            dashFraction: dashFraction,
-            phaseFraction: phaseFraction,
-            duration: duration,
-            opacity: opacity,
-            shadowOpacity: 0.28,
-            shadowRadius: 8
-        )
-    }
-
-    private func makeSegment(
-        color: UIColor,
-        placement: SegmentPlacement,
-        lineWidth: CGFloat,
-        dashFraction: CGFloat,
-        phaseFraction: CGFloat,
-        duration: CFTimeInterval,
-        opacity: Float,
-        shadowOpacity: Float,
-        shadowRadius: CGFloat
-    ) -> GlowSegment {
-        let segmentLayer = CAShapeLayer()
-        segmentLayer.fillColor = UIColor.clear.cgColor
-        segmentLayer.strokeColor = color.cgColor
-        segmentLayer.lineWidth = lineWidth
-        segmentLayer.lineJoin = .round
-        segmentLayer.lineCap = .round
-        segmentLayer.opacity = opacity
-        segmentLayer.shadowColor = color.cgColor
-        segmentLayer.shadowOpacity = shadowOpacity
-        segmentLayer.shadowRadius = shadowRadius
-        segmentLayer.shadowOffset = .zero
-        segmentLayer.backgroundColor = UIColor.clear.cgColor
-        segmentLayer.isOpaque = false
-
-        return GlowSegment(
-            layer: segmentLayer,
-            placement: placement,
-            lineWidth: lineWidth,
-            dashFraction: dashFraction,
-            phaseFraction: phaseFraction,
-            duration: duration,
-            opacity: opacity,
-            shadowOpacity: shadowOpacity,
-            shadowRadius: shadowRadius
-        )
+    func configureConicLayer(_ layer: CAGradientLayer) {
+        layer.type = .conic
+        layer.startPoint = CGPoint(x: 0.5, y: 0.5)
+        layer.endPoint = CGPoint(x: 1, y: 0.5)
+        layer.backgroundColor = UIColor.clear.cgColor
+        layer.isOpaque = false
+        layer.masksToBounds = false
     }
 
     func installReduceMotionObserver() {
@@ -224,161 +111,143 @@ private extension AppleIntelligenceGlowOverlayView {
         updateMotionState()
     }
 
-    func updateSegmentGeometry() {
+    func updateLayerGeometry() {
         guard !bounds.isEmpty else { return }
 
-        let profile = edgeLightProfile(for: bounds)
+        let metrics = edgeLightMetrics(for: bounds)
+        let frame = bounds
+        let path = UIBezierPath(roundedRect: metrics.pathBounds, cornerRadius: metrics.cornerRadius).cgPath
 
         CATransaction.begin()
         CATransaction.setDisableActions(true)
 
-        (ambientSegments + glassSegments).forEach { segment in
-            let metrics = segmentMetrics(for: segment, profile: profile)
-            let path = UIBezierPath(roundedRect: metrics.pathBounds, cornerRadius: metrics.cornerRadius).cgPath
-            let perimeter = roundedRectPerimeter(
-                width: metrics.pathBounds.width,
-                height: metrics.pathBounds.height,
-                radius: metrics.cornerRadius
-            )
+        softBloomLayer.frame = frame
+        marqueeLayer.frame = frame
+        glassLayer.frame = frame
 
-            segment.layer.frame = bounds
-            segment.layer.path = path
-            segment.layer.lineWidth = metrics.lineWidth
-            segment.layer.lineDashPattern = dashPattern(
-                dashLength: perimeter * segment.dashFraction * metrics.dashScale,
-                perimeter: perimeter
-            )
-            segment.layer.lineDashPhase = (perimeter * segment.phaseFraction).truncatingRemainder(dividingBy: perimeter)
-            segment.layer.shadowRadius = segment.shadowRadius * metrics.shadowScale
-        }
+        updateMask(softBloomMask, path: path, lineWidth: metrics.bloomWidth)
+        updateMask(marqueeMask, path: path, lineWidth: metrics.marqueeWidth)
+        updateMask(glassMask, path: path, lineWidth: metrics.glassWidth)
+
+        baseBloomOpacity = metrics.bloomOpacity
+        baseGlowOpacity = metrics.glowOpacity
+        baseGlassOpacity = metrics.glassOpacity
 
         CATransaction.commit()
 
         updateMotionState()
     }
 
+    func updateMask(_ mask: CAShapeLayer, path: CGPath, lineWidth: CGFloat) {
+        mask.path = path
+        mask.fillColor = UIColor.clear.cgColor
+        mask.strokeColor = UIColor.black.cgColor
+        mask.lineWidth = lineWidth
+        mask.lineJoin = .round
+        mask.lineCap = .round
+        mask.backgroundColor = UIColor.clear.cgColor
+        mask.isOpaque = false
+    }
+
     func updateMotionState() {
         removeAnimations()
 
         if reduceMotion {
-            ambientSegments.forEach { segment in
-                segment.layer.opacity = min(segment.opacity, 0.10)
-                segment.layer.shadowOpacity = min(segment.shadowOpacity, 0.12)
-            }
-            glassSegments.forEach { segment in
-                segment.layer.opacity = min(segment.opacity, 0.16)
-                segment.layer.shadowOpacity = 0.10
-            }
-        } else {
-            ambientSegments.forEach { segment in
-                segment.layer.opacity = segment.opacity
-                segment.layer.shadowOpacity = segment.shadowOpacity
-                addPhaseAnimation(to: segment, reversed: false)
-                addBreathingAnimation(to: segment.layer, baseOpacity: segment.opacity)
-            }
-            glassSegments.forEach { segment in
-                segment.layer.opacity = segment.opacity
-                segment.layer.shadowOpacity = segment.shadowOpacity
-                addPhaseAnimation(to: segment, reversed: true)
-            }
+            softBloomLayer.speed = 0
+            marqueeLayer.speed = 0
+            glassLayer.speed = 0
+            softBloomLayer.opacity = baseBloomOpacity * 0.70
+            marqueeLayer.opacity = baseGlowOpacity * 0.72
+            glassLayer.opacity = baseGlassOpacity * 0.55
+            return
         }
+
+        softBloomLayer.speed = 1
+        marqueeLayer.speed = 1
+        glassLayer.speed = 1
+        softBloomLayer.opacity = baseBloomOpacity
+        marqueeLayer.opacity = baseGlowOpacity
+        glassLayer.opacity = baseGlassOpacity
+
+        addRotationAnimation(to: softBloomLayer, duration: 10.5, clockwise: true, key: "soft-bloom-rotation")
+        addRotationAnimation(to: marqueeLayer, duration: 6.6, clockwise: true, key: "marquee-rotation")
+        addRotationAnimation(to: glassLayer, duration: 4.8, clockwise: false, key: "glass-rotation")
+        addBreathingAnimation(to: marqueeLayer)
     }
 
     func removeAnimations() {
-        (ambientSegments + glassSegments).forEach { segment in
-            segment.layer.removeAllAnimations()
-        }
+        softBloomLayer.removeAllAnimations()
+        marqueeLayer.removeAllAnimations()
+        glassLayer.removeAllAnimations()
     }
 
-    private func addPhaseAnimation(to segment: GlowSegment, reversed: Bool) {
-        guard let pattern = segment.layer.lineDashPattern, pattern.count >= 2 else { return }
-
-        let dashLength = CGFloat(pattern[0].doubleValue)
-        let gapLength = CGFloat(pattern[1].doubleValue)
-        let perimeter = dashLength + gapLength
-        let basePhase = segment.layer.lineDashPhase
-        let direction: CGFloat = reversed ? 1 : -1
-
-        let animation = CABasicAnimation(keyPath: "lineDashPhase")
-        animation.fromValue = NSNumber(value: Double(basePhase))
-        animation.toValue = NSNumber(value: Double(basePhase + direction * perimeter))
-        animation.duration = segment.duration
+    func addRotationAnimation(
+        to layer: CALayer,
+        duration: CFTimeInterval,
+        clockwise: Bool,
+        key: String
+    ) {
+        let animation = CABasicAnimation(keyPath: "transform.rotation.z")
+        animation.fromValue = clockwise ? 0 : Double.pi * 2
+        animation.toValue = clockwise ? Double.pi * 2 : 0
+        animation.duration = duration
         animation.repeatCount = Float.infinity
         animation.timingFunction = CAMediaTimingFunction(name: .linear)
         animation.isRemovedOnCompletion = false
 
-        segment.layer.add(animation, forKey: "edge-light-phase")
+        layer.add(animation, forKey: key)
     }
 
-    func addBreathingAnimation(to layer: CALayer, baseOpacity: Float) {
+    func addBreathingAnimation(to layer: CALayer) {
+        let baseOpacity = layer.opacity
         let animation = CAKeyframeAnimation(keyPath: "opacity")
         animation.values = [
-            NSNumber(value: baseOpacity * 0.70),
-            NSNumber(value: min(baseOpacity * 1.18, 0.32)),
-            NSNumber(value: baseOpacity * 0.86),
-            NSNumber(value: min(baseOpacity * 1.08, 0.30)),
-            NSNumber(value: baseOpacity * 0.70)
+            NSNumber(value: baseOpacity * 0.82),
+            NSNumber(value: min(baseOpacity * 1.12, 0.40)),
+            NSNumber(value: baseOpacity * 0.92),
+            NSNumber(value: min(baseOpacity * 1.06, 0.38)),
+            NSNumber(value: baseOpacity * 0.82)
         ]
-        animation.keyTimes = numberValues([0, 0.26, 0.52, 0.78, 1])
-        animation.duration = 6.8
+        animation.keyTimes = numberValues([0, 0.24, 0.50, 0.74, 1])
+        animation.duration = 5.8
         animation.repeatCount = Float.infinity
         animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         animation.isRemovedOnCompletion = false
 
-        layer.add(animation, forKey: "edge-light-breathing")
+        layer.add(animation, forKey: "marquee-breathing")
     }
 
-    func dashPattern(dashLength: CGFloat, perimeter: CGFloat) -> [NSNumber] {
-        let clampedDashLength = min(max(dashLength, 96), perimeter * 0.24)
-        let gapLength = max(perimeter - clampedDashLength, 1)
-
-        return [
-            NSNumber(value: Double(clampedDashLength)),
-            NSNumber(value: Double(gapLength))
-        ]
-    }
-
-    func roundedRectPerimeter(width: CGFloat, height: CGFloat, radius: CGFloat) -> CGFloat {
-        let clampedRadius = min(radius, min(width, height) / 2)
-        return 2 * (width + height - 4 * clampedRadius) + 2 * CGFloat.pi * clampedRadius
-    }
-
-    func numberValues(_ values: [Double]) -> [NSNumber] {
-        values.map { NSNumber(value: $0) }
-    }
-
-    private func edgeLightProfile(for bounds: CGRect) -> EdgeLightProfile {
+    func edgeLightMetrics(for bounds: CGRect) -> EdgeLightMetrics {
         if isIPhoneAirSized(bounds) {
-            return EdgeLightProfile(
-                ambientOutset: 34,
-                ambientCornerRadius: 88,
-                ambientWidthScale: 1.0,
-                ambientDashScale: 1.0,
-                ambientShadowScale: 1.0,
-                glassInset: 5,
-                glassCornerRadius: 58,
-                glassWidthScale: 1.0,
-                glassDashScale: 1.0
+            return EdgeLightMetrics(
+                pathBounds: bounds.insetBy(dx: -22, dy: -22),
+                cornerRadius: 72,
+                marqueeWidth: 34,
+                bloomWidth: 86,
+                glassWidth: 2.4,
+                glowOpacity: 0.30,
+                bloomOpacity: 0.16,
+                glassOpacity: 0.24
             )
         }
 
         let shortestSide = min(bounds.width, bounds.height)
         let scale = min(max(shortestSide / 420, 0.86), 1.18)
+        let outset = 20 * scale
 
-        return EdgeLightProfile(
-            ambientOutset: 30 * scale,
-            ambientCornerRadius: max(72, shortestSide * 0.20),
-            ambientWidthScale: scale,
-            ambientDashScale: scale,
-            ambientShadowScale: scale,
-            glassInset: 5,
-            glassCornerRadius: max(48, shortestSide * 0.138),
-            glassWidthScale: scale,
-            glassDashScale: scale
+        return EdgeLightMetrics(
+            pathBounds: bounds.insetBy(dx: -outset, dy: -outset),
+            cornerRadius: max(62, shortestSide * 0.17),
+            marqueeWidth: 32 * scale,
+            bloomWidth: 80 * scale,
+            glassWidth: 2.2 * scale,
+            glowOpacity: 0.28,
+            bloomOpacity: 0.15,
+            glassOpacity: 0.22
         )
     }
 
-    private func isIPhoneAirSized(_ bounds: CGRect) -> Bool {
+    func isIPhoneAirSized(_ bounds: CGRect) -> Bool {
         let pointWidth = min(bounds.width, bounds.height)
         let pointHeight = max(bounds.width, bounds.height)
         let nativeSize = UIScreen.main.nativeBounds.size
@@ -391,34 +260,37 @@ private extension AppleIntelligenceGlowOverlayView {
         return matchesLogicalSize || matchesNativeSize
     }
 
-    private func segmentMetrics(
-        for segment: GlowSegment,
-        profile: EdgeLightProfile
-    ) -> (
-        pathBounds: CGRect,
-        cornerRadius: CGFloat,
-        lineWidth: CGFloat,
-        dashScale: CGFloat,
-        shadowScale: CGFloat
-    ) {
-        switch segment.placement {
-        case .ambient:
-            return (
-                pathBounds: bounds.insetBy(dx: -profile.ambientOutset, dy: -profile.ambientOutset),
-                cornerRadius: profile.ambientCornerRadius,
-                lineWidth: segment.lineWidth * profile.ambientWidthScale,
-                dashScale: profile.ambientDashScale,
-                shadowScale: profile.ambientShadowScale
-            )
+    func appleIntelligenceColors(alphaScale: CGFloat) -> [CGColor] {
+        [
+            UIColor(red: 0.18, green: 0.70, blue: 1.00, alpha: 0.00).cgColor,
+            UIColor(red: 0.18, green: 0.70, blue: 1.00, alpha: 0.72 * alphaScale).cgColor,
+            UIColor(red: 0.36, green: 0.52, blue: 1.00, alpha: 0.36 * alphaScale).cgColor,
+            UIColor(red: 0.86, green: 0.34, blue: 1.00, alpha: 0.68 * alphaScale).cgColor,
+            UIColor(red: 1.00, green: 0.35, blue: 0.72, alpha: 0.54 * alphaScale).cgColor,
+            UIColor(red: 1.00, green: 0.76, blue: 0.26, alpha: 0.26 * alphaScale).cgColor,
+            UIColor(red: 0.24, green: 1.00, blue: 0.82, alpha: 0.58 * alphaScale).cgColor,
+            UIColor(red: 0.16, green: 0.76, blue: 1.00, alpha: 0.52 * alphaScale).cgColor,
+            UIColor(red: 0.92, green: 0.42, blue: 1.00, alpha: 0.62 * alphaScale).cgColor,
+            UIColor(red: 0.18, green: 0.70, blue: 1.00, alpha: 0.28 * alphaScale).cgColor,
+            UIColor(red: 0.18, green: 0.70, blue: 1.00, alpha: 0.00).cgColor
+        ]
+    }
 
-        case .glass:
-            return (
-                pathBounds: bounds.insetBy(dx: profile.glassInset, dy: profile.glassInset),
-                cornerRadius: profile.glassCornerRadius,
-                lineWidth: segment.lineWidth * profile.glassWidthScale,
-                dashScale: profile.glassDashScale,
-                shadowScale: profile.glassWidthScale
-            )
-        }
+    func glassHighlightColors() -> [CGColor] {
+        [
+            UIColor.white.withAlphaComponent(0.00).cgColor,
+            UIColor.white.withAlphaComponent(0.44).cgColor,
+            UIColor(red: 0.78, green: 0.96, blue: 1.00, alpha: 0.26).cgColor,
+            UIColor.white.withAlphaComponent(0.00).cgColor,
+            UIColor.white.withAlphaComponent(0.00).cgColor,
+            UIColor.white.withAlphaComponent(0.20).cgColor,
+            UIColor.white.withAlphaComponent(0.34).cgColor,
+            UIColor.white.withAlphaComponent(0.00).cgColor,
+            UIColor.white.withAlphaComponent(0.00).cgColor
+        ]
+    }
+
+    func numberValues(_ values: [Double]) -> [NSNumber] {
+        values.map { NSNumber(value: $0) }
     }
 }
