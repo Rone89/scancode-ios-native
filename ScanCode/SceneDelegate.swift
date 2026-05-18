@@ -1,4 +1,3 @@
-import SwiftUI
 import UIKit
 
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
@@ -6,7 +5,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     private let scanViewController = ScanViewController()
     private lazy var navigationController = UINavigationController(rootViewController: scanViewController)
-    private var intelligenceGlowOverlayController: UIHostingController<AppleIntelligenceGlowOverlay>?
+    private var intelligenceGlowOverlayView: AppleIntelligenceGlowOverlayView?
 
     func scene(
         _ scene: UIScene,
@@ -20,10 +19,12 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         navigationController.setNavigationBarHidden(true, animated: false)
         navigationController.view.backgroundColor = .black
         window.rootViewController = navigationController
-        installIntelligenceGlowOverlay()
         window.makeKeyAndVisible()
 
         self.window = window
+        DispatchQueue.main.async { [weak self] in
+            self?.installIntelligenceGlowOverlay()
+        }
 
         if let initialURL = connectionOptions.urlContexts.first?.url {
             DispatchQueue.main.async { [weak self] in
@@ -48,22 +49,17 @@ private extension SceneDelegate {
     }
 
     func installIntelligenceGlowOverlay() {
-        let overlayController = UIHostingController(rootView: AppleIntelligenceGlowOverlay())
-        overlayController.view.backgroundColor = .clear
-        overlayController.view.isOpaque = false
-        overlayController.view.isUserInteractionEnabled = false
-        overlayController.view.translatesAutoresizingMaskIntoConstraints = false
+        let overlayView = AppleIntelligenceGlowOverlayView()
+        overlayView.translatesAutoresizingMaskIntoConstraints = false
 
-        navigationController.addChild(overlayController)
-        navigationController.view.addSubview(overlayController.view)
+        navigationController.view.addSubview(overlayView)
         NSLayoutConstraint.activate([
-            overlayController.view.leadingAnchor.constraint(equalTo: navigationController.view.leadingAnchor),
-            overlayController.view.trailingAnchor.constraint(equalTo: navigationController.view.trailingAnchor),
-            overlayController.view.topAnchor.constraint(equalTo: navigationController.view.topAnchor),
-            overlayController.view.bottomAnchor.constraint(equalTo: navigationController.view.bottomAnchor)
+            overlayView.leadingAnchor.constraint(equalTo: navigationController.view.leadingAnchor),
+            overlayView.trailingAnchor.constraint(equalTo: navigationController.view.trailingAnchor),
+            overlayView.topAnchor.constraint(equalTo: navigationController.view.topAnchor),
+            overlayView.bottomAnchor.constraint(equalTo: navigationController.view.bottomAnchor)
         ])
-        overlayController.didMove(toParent: navigationController)
 
-        intelligenceGlowOverlayController = overlayController
+        intelligenceGlowOverlayView = overlayView
     }
 }
