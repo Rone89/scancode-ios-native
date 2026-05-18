@@ -21,6 +21,7 @@
 		13A1A00C2C00000100000001 /* ScanLiveActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A01D2C00000100000001 /* ScanLiveActivityAttributes.swift */; };
 		13A1A00D2C00000100000001 /* ScanCodeLiveActivityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A01E2C00000100000001 /* ScanCodeLiveActivityWidget.swift */; };
 		13A1A00E2C00000100000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13A1A01F2C00000100000001 /* Assets.xcassets */; };
+		13A1A00F2C00000100000001 /* AppleIntelligenceGlowOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A0182C00000100000001 /* AppleIntelligenceGlowOverlay.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +57,7 @@
 		13A1A0152C00000100000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		13A1A0162C00000100000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		13A1A0172C00000100000001 /* ScanAppAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanAppAction.swift; sourceTree = "<group>"; };
+		13A1A0182C00000100000001 /* AppleIntelligenceGlowOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleIntelligenceGlowOverlay.swift; sourceTree = "<group>"; };
 		13A1A0192C00000100000001 /* ScanCodeWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ScanCodeWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		13A1A01A2C00000100000001 /* ScanCodeWidgetsBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanCodeWidgetsBundle.swift; sourceTree = "<group>"; };
 		13A1A01B2C00000100000001 /* ScanWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanWidget.swift; sourceTree = "<group>"; };
@@ -99,6 +101,7 @@
 				13A1A0112C00000100000001 /* AppDelegate.swift */,
 				13A1A0122C00000100000001 /* SceneDelegate.swift */,
 				13A1A0132C00000100000001 /* ScanViewController.swift */,
+				13A1A0182C00000100000001 /* AppleIntelligenceGlowOverlay.swift */,
 				13A1A0142C00000100000001 /* LaunchScreen.storyboard */,
 				13A1A0152C00000100000001 /* Info.plist */,
 				13A1A0162C00000100000001 /* Assets.xcassets */,
@@ -242,6 +245,7 @@
 				13A1A00B2C00000100000001 /* ScanLiveActivityAttributes.swift in Sources */,
 				13A1A0022C00000100000001 /* SceneDelegate.swift in Sources */,
 				13A1A0032C00000100000001 /* ScanViewController.swift in Sources */,
+				13A1A00F2C00000100000001 /* AppleIntelligenceGlowOverlay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
