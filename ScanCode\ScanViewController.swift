@@ -8,11 +8,9 @@ import UIKit
 /// 实现点：
 /// - 使用 AVFoundation 的 AVCaptureSession / AVCaptureMetadataOutput 识别二维码。
 /// - 使用 AVCaptureVideoPreviewLayer 作为相机预览层，不引入第三方扫码库。
-/// - 使用 iOS 26 原生 Liquid Glass 组件，保持系统风格与原生交互。
 /// - 识别成功后，通过 transformedMetadataObject(for:) 获取二维码位置并绘制绿色边框动画。
 /// - 识别成功后触发 UIImpactFeedbackGenerator(style: .medium) 硬件触感反馈。
 /// - 支持双指捏合缩放，直接修改 AVCaptureDevice.videoZoomFactor。
-/// - 支持通过小组件和 App 内快捷按钮直接拉起微信扫一扫、支付宝扫码。
 /// - 通过更低的会话分辨率、串行识别队列、中心区域识别和帧率限制降低发热。
 final class ScanViewController: UIViewController {
 
@@ -54,64 +52,6 @@ final class ScanViewController: UIViewController {
 
     private let hapticFeedback = UIImpactFeedbackGenerator(style: .medium)
 
-    private lazy var headerGlassView = Self.makeGlassView(cornerRadius: 30)
-    private lazy var footerGlassView = Self.makeGlassView(cornerRadius: 32)
-
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "ScanCode"
-        label.font = .systemFont(ofSize: 28, weight: .bold)
-        label.textColor = .white
-        return label
-    }()
-
-    private let subtitleLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.numberOfLines = 2
-        label.text = "iOS 26 原生扫码页，液态玻璃风格，低功耗扫码管线。"
-        label.font = .systemFont(ofSize: 15, weight: .medium)
-        label.textColor = UIColor.white.withAlphaComponent(0.88)
-        return label
-    }()
-
-    private let footerHintLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.numberOfLines = 0
-        label.text = "双指可缩放相机。通用二维码选择“微信扫一扫”后，会直接拉起微信扫一扫，不再额外确认。"
-        label.font = .systemFont(ofSize: 13, weight: .medium)
-        label.textColor = UIColor.white.withAlphaComponent(0.82)
-        return label
-    }()
-
-    private lazy var weChatShortcutButton: UIButton = {
-        let action = UIAction { [weak self] _ in
-            self?.handleExternalAction(.weChatScanner)
-        }
-        return Self.makeGlassButton(
-            title: "微信扫一扫",
-            subtitle: "聚合码选微信可直达",
-            systemImage: "message.fill",
-            prominent: true,
-            action: action
-        )
-    }()
-
-    private lazy var alipayShortcutButton: UIButton = {
-        let action = UIAction { [weak self] _ in
-            self?.handleExternalAction(.alipayScanner)
-        }
-        return Self.makeGlassButton(
-            title: "支付宝扫码",
-            subtitle: "拉起支付宝原生解析",
-            systemImage: "creditcard.fill",
-            prominent: false,
-            action: action
-        )
-    }()
-
     override var preferredStatusBarStyle: UIStatusBarStyle {
         .lightContent
     }
@@ -122,7 +62,6 @@ final class ScanViewController: UIViewController {
         view.backgroundColor = .black
         hapticFeedback.prepare()
         configurePreviewLayer()
-        configureOverlayUI()
         configurePinchGesture()
         installLifecycleObservers()
         requestCameraPermissionAndStart()
@@ -212,91 +151,7 @@ private extension ScanViewController {
     }
 }
 
-// MARK: - UI
-
 private extension ScanViewController {
-
-    static func makeGlassView(cornerRadius: CGFloat) -> UIVisualEffectView {
-        let effect = UIGlassEffect(style: .regular)
-        effect.tintColor = UIColor.white.withAlphaComponent(0.06)
-
-        let effectView = UIVisualEffectView(effect: effect)
-        effectView.translatesAutoresizingMaskIntoConstraints = false
-        effectView.clipsToBounds = true
-        effectView.layer.cornerRadius = cornerRadius
-        effectView.layer.cornerCurve = .continuous
-        return effectView
-    }
-
-    static func makeGlassButton(
-        title: String,
-        subtitle: String,
-        systemImage: String,
-        prominent: Bool,
-        action: UIAction
-    ) -> UIButton {
-        var configuration = prominent ? UIButton.Configuration.prominentGlass() : UIButton.Configuration.glass()
-        configuration.title = title
-        configuration.subtitle = subtitle
-        configuration.image = UIImage(systemName: systemImage)
-        configuration.imagePlacement = .leading
-        configuration.imagePadding = 10
-        configuration.titleAlignment = .leading
-        configuration.cornerStyle = .large
-        configuration.baseForegroundColor = .label
-        configuration.contentInsets = NSDirectionalEdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16)
-
-        let button = UIButton(type: .system, primaryAction: action)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.configuration = configuration
-        button.contentHorizontalAlignment = .leading
-        return button
-    }
-
-    func configureOverlayUI() {
-        view.addSubview(headerGlassView)
-        view.addSubview(footerGlassView)
-
-        let headerStack = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
-        headerStack.translatesAutoresizingMaskIntoConstraints = false
-        headerStack.axis = .vertical
-        headerStack.spacing = 6
-        headerGlassView.contentView.addSubview(headerStack)
-
-        let actionsStack = UIStackView(arrangedSubviews: [weChatShortcutButton, alipayShortcutButton])
-        actionsStack.translatesAutoresizingMaskIntoConstraints = false
-        actionsStack.axis = .vertical
-        actionsStack.spacing = 12
-
-        let footerStack = UIStackView(arrangedSubviews: [actionsStack, footerHintLabel])
-        footerStack.translatesAutoresizingMaskIntoConstraints = false
-        footerStack.axis = .vertical
-        footerStack.spacing = 14
-        footerGlassView.contentView.addSubview(footerStack)
-
-        NSLayoutConstraint.activate([
-            headerGlassView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 14),
-            headerGlassView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            headerGlassView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-
-            headerStack.topAnchor.constraint(equalTo: headerGlassView.contentView.topAnchor, constant: 16),
-            headerStack.leadingAnchor.constraint(equalTo: headerGlassView.contentView.leadingAnchor, constant: 18),
-            headerStack.trailingAnchor.constraint(equalTo: headerGlassView.contentView.trailingAnchor, constant: -18),
-            headerStack.bottomAnchor.constraint(equalTo: headerGlassView.contentView.bottomAnchor, constant: -16),
-
-            footerGlassView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            footerGlassView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            footerGlassView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-
-            footerStack.topAnchor.constraint(equalTo: footerGlassView.contentView.topAnchor, constant: 16),
-            footerStack.leadingAnchor.constraint(equalTo: footerGlassView.contentView.leadingAnchor, constant: 16),
-            footerStack.trailingAnchor.constraint(equalTo: footerGlassView.contentView.trailingAnchor, constant: -16),
-            footerStack.bottomAnchor.constraint(equalTo: footerGlassView.contentView.bottomAnchor, constant: -16),
-
-            weChatShortcutButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 68),
-            alipayShortcutButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 68)
-        ])
-    }
 
     func installLifecycleObservers() {
         NotificationCenter.default.addObserver(
@@ -633,7 +488,7 @@ private extension ScanViewController {
     func handleScannedQRCodeString(_ qrCodeString: String) {
         switch route(for: qrCodeString) {
         case .weChat:
-            openWeChatPayload(qrCodeString)
+            openWeChatScanner()
 
         case .alipay:
             openAlipayQRCode(qrCodeString)
@@ -673,21 +528,20 @@ private extension ScanViewController {
 
     func showGeneralQRCodeActionSheet(for qrCodeString: String) {
         let alert = UIAlertController(
-            title: "请选择支付方式",
-            message: qrCodeString,
+            title: "请选择打开方式",
+            message: nil,
             preferredStyle: .actionSheet
         )
         alert.view.tintColor = .systemBlue
 
-        // 通用二维码或聚合支付码无法只靠当前 App 准确判断收款方。
-        // 用户选择“微信扫一扫”后，这里会直接拉起微信扫一扫，不再追加任何二次确认弹窗。
-        let weChatAction = UIAlertAction(title: "微信", style: .default) { [weak self] _ in
+        // 通用二维码无法只靠当前 App 准确判断后续业务。
+        // 选择微信后，直接拉起微信扫一扫，让微信继续处理扫码流程。
+        let weChatAction = UIAlertAction(title: "微信扫一扫", style: .default) { [weak self] _ in
             self?.openWeChatScanner()
         }
         alert.addAction(weChatAction)
 
-        // 用户选择“支付宝支付”后，将原始聚合码作为 qrcode 参数交给支付宝。
-        // 支付宝客户端会继续解析二维码内容，并进入对应业务页面。
+        // 选择支付宝后，将原始二维码内容作为 qrcode 参数交给支付宝处理。
         let alipayAction = UIAlertAction(title: "支付宝", style: .default) { [weak self] _ in
             self?.openAlipayQRCode(qrCodeString)
         }
@@ -709,32 +563,6 @@ private extension ScanViewController {
         }
 
         present(alert, animated: true)
-    }
-
-    func openWeChatPayload(_ qrCodeString: String) {
-        // 微信二维码的业务形态很多：
-        // - weixin.qq.com 可能是微信网页/业务二维码；
-        // - wxp://、weixin:// 这类内容更接近微信私有 Scheme；
-        // - 微信专有码通常更适合优先交给微信自身处理。
-        //
-        // 因此这里按“尽最大努力”策略：
-        // 1. 如果二维码本身就是微信可打开的私有 Scheme，优先打开原始内容；
-        // 2. 否则尝试打开微信扫一扫 Scheme；
-        // 3. 再退回到 weixin:// 拉起微信首页。
-        var candidates: [URL] = []
-        if let originalURL = URL(string: qrCodeString),
-           let scheme = originalURL.scheme?.lowercased(),
-           ["weixin", "wxp", "wechat"].contains(scheme) {
-            candidates.append(originalURL)
-        }
-
-        candidates.append(contentsOf: weChatScannerCandidates())
-
-        openFirstAvailableURL(
-            candidates,
-            failureTitle: "无法打开微信",
-            failureMessage: "请确认已安装微信，并在 Info.plist 中配置 weixin / wechat / wxp 白名单。"
-        )
     }
 
     func openWeChatScanner() {
