@@ -59,6 +59,8 @@ private struct ScanCodeQuickActionsWidgetView: View {
             accessoryCircular
         case .accessoryRectangular:
             accessoryRectangular
+        case .accessoryCorner:
+            accessoryCircular
         @unknown default:
             systemSmall
         }

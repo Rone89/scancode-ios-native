@@ -12,7 +12,10 @@ enum ScanAppAction: String, CaseIterable, Sendable {
 
         let token = url.host?.lowercased()
             ?? url.pathComponents.dropFirst().first?.lowercased()
-            ?? url.lastPathComponent.lowercased()
+            ?? {
+                let lastPathComponent = url.lastPathComponent.lowercased()
+                return lastPathComponent.isEmpty ? nil : lastPathComponent
+            }()
 
         guard let token else { return nil }
         self.init(rawValue: token)
