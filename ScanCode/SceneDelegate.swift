@@ -5,7 +5,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     private let scanViewController = ScanViewController()
     private lazy var navigationController = UINavigationController(rootViewController: scanViewController)
-    private var intelligenceGlowOverlayView: AppleIntelligenceGlowOverlayView?
+    private var matrixRainOverlayView: MatrixRainOverlayView?
 
     func scene(
         _ scene: UIScene,
@@ -23,7 +23,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         self.window = window
         DispatchQueue.main.async { [weak self] in
-            self?.installIntelligenceGlowOverlay()
+            self?.installMatrixRainOverlay()
         }
 
         if let initialURL = connectionOptions.urlContexts.first?.url {
@@ -48,8 +48,8 @@ private extension SceneDelegate {
         scanViewController.handleExternalAction(action)
     }
 
-    func installIntelligenceGlowOverlay() {
-        let overlayView = AppleIntelligenceGlowOverlayView()
+    func installMatrixRainOverlay() {
+        let overlayView = MatrixRainOverlayView()
         overlayView.translatesAutoresizingMaskIntoConstraints = false
 
         navigationController.view.addSubview(overlayView)
@@ -60,6 +60,6 @@ private extension SceneDelegate {
             overlayView.bottomAnchor.constraint(equalTo: navigationController.view.bottomAnchor)
         ])
 
-        intelligenceGlowOverlayView = overlayView
+        matrixRainOverlayView = overlayView
     }
 }
