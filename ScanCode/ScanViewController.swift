@@ -384,7 +384,7 @@ private extension ScanViewController {
         }
     }
 
-    func route(for qrCodeString: String) -> PaymentRoute {
+    private func route(for qrCodeString: String) -> PaymentRoute {
         let lowercasedString = qrCodeString.lowercased()
 
         if isWeChatQRCode(lowercasedString) {
