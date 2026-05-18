@@ -13,7 +13,7 @@ ScanCode is a native iOS 26 QR scanner app built with UIKit, WidgetKit, and AVFo
 - Lower thermal load through a narrower scan region, lower session preset, throttled duplicate handling, and camera frame-rate limiting.
 - Routing for WeChat, Alipay, and generic aggregate payment QR codes.
 - Generic QR path can open WeChat Scan directly without an extra confirmation step after the user chooses WeChat.
-- Home screen and Lock Screen widgets for scanner, WeChat scan, and Alipay scan entry points.
+- Home screen, Lock Screen, and Dynamic Island surfaces for scanner, WeChat scan, and Alipay scan entry points.
 - Generated app icon set included in `Assets.xcassets`.
 
 ## Permissions
@@ -33,6 +33,7 @@ It also includes URL scheme query allowlist entries for WeChat and Alipay:
     <string>weixin</string>
     <string>wxp</string>
     <string>wechat</string>
+    <string>alipay</string>
     <string>alipayqr</string>
     <string>alipays</string>
 </array>
@@ -65,7 +66,7 @@ The widget extension supports:
 
 Each widget can deep-link into one of the app actions:
 
-- `scancode://scanner`
+- `scancode://startscan`
 - `scancode://wechat-scanner`
 - `scancode://alipay-scanner`
 
