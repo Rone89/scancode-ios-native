@@ -17,7 +17,7 @@ The app includes the required camera permission description:
 
 ```xml
 <key>NSCameraUsageDescription</key>
-<string>????????????</string>
+<string>需要使用相机扫描二维码。</string>
 ```
 
 It also includes URL scheme query allowlist entries for WeChat and Alipay:
