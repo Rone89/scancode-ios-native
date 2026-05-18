@@ -1,0 +1,100 @@
+name: Build IPA and Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build unsigned IPA
+    runs-on: macos-latest
+
+    env:
+      APP_NAME: ScanCode
+      RELEASE_BASE_VERSION: "1.0"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build app
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project ScanCode.xcodeproj \
+            -scheme ScanCode \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            MARKETING_VERSION="${RELEASE_BASE_VERSION}" \
+            CURRENT_PROJECT_VERSION="${GITHUB_RUN_NUMBER}" \
+            build
+
+      - name: Package IPA
+        run: |
+          set -euo pipefail
+          VERSION="${RELEASE_BASE_VERSION}.${GITHUB_RUN_NUMBER}"
+          APP_PATH="$(find build/Build/Products/Release-iphoneos -maxdepth 1 -name "${APP_NAME}.app" -print -quit)"
+          if [ -z "${APP_PATH}" ]; then
+            echo "Could not find built app bundle."
+            find build/Build/Products -maxdepth 3 -print
+            exit 1
+          fi
+
+          rm -rf Payload
+          mkdir -p Payload
+          cp -R "${APP_PATH}" "Payload/${APP_NAME}.app"
+          /usr/bin/zip -qry "${APP_NAME}-v${VERSION}.ipa" Payload
+
+      - name: Write release notes
+        run: |
+          set -euo pipefail
+          VERSION="${RELEASE_BASE_VERSION}.${GITHUB_RUN_NUMBER}"
+          cat > RELEASE_NOTES.md <<EOF
+          # ScanCode v${VERSION}
+
+          ???? GitHub Actions ????????
+
+          ## ????
+
+          - ?????? AVFoundation ????????
+          - ?? AVCaptureVideoPreviewLayer ?????????
+          - ?????,?? transformedMetadataObject(for:) ???????????????
+          - ??????? UIImpactFeedbackGenerator(style: .medium) ???????
+          - ????????,?? AVCaptureDevice.videoZoomFactor ???????
+          - ???????????????????????
+
+          ## ????
+
+          ? IPA ? CI ??????????,???????????????????????,??? Apple Developer ??? provisioning profile ??????
+
+          Build: ${GITHUB_RUN_NUMBER}
+          Commit: ${GITHUB_SHA}
+          EOF
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ScanCode-ipa
+          path: ScanCode-v${{ env.RELEASE_BASE_VERSION }}.${{ github.run_number }}.ipa
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.RELEASE_BASE_VERSION }}.${{ github.run_number }}
+          name: ScanCode v${{ env.RELEASE_BASE_VERSION }}.${{ github.run_number }}
+          body_path: RELEASE_NOTES.md
+          files: ScanCode-v${{ env.RELEASE_BASE_VERSION }}.${{ github.run_number }}.ipa
+          make_latest: true
