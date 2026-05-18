@@ -130,10 +130,9 @@ private struct ScanWidgetView: View {
     }
 
     private var accessoryCircular: some View {
-        Image(systemName: "qrcode.viewfinder")
-            .font(.system(size: 20, weight: .semibold))
-            .foregroundStyle(.white)
-            .padding(10)
+        appIconImage
+            .frame(width: 36, height: 36)
+            .clipShape(Circle())
             .glassEffect(.regular.interactive(), in: Circle())
             .widgetURL(ScanAppAction.scanner.url)
             .containerBackground(for: .widget) {
@@ -143,8 +142,9 @@ private struct ScanWidgetView: View {
 
     private var accessoryRectangular: some View {
         HStack(spacing: 8) {
-            Image(systemName: "qrcode.viewfinder")
-                .font(.title3)
+            appIconImage
+                .frame(width: 28, height: 28)
+                .clipShape(.rect(cornerRadius: 7))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("ScanCode")
@@ -162,9 +162,9 @@ private struct ScanWidgetView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            Image(systemName: "qrcode.viewfinder")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundStyle(.white)
+            appIconImage
+                .frame(width: 30, height: 30)
+                .clipShape(.rect(cornerRadius: 8))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("ScanCode")
@@ -183,8 +183,8 @@ private struct ScanWidgetView: View {
     private func actionCard(_ action: ScanAppAction) -> some View {
         Link(destination: action.url) {
             VStack(alignment: .leading, spacing: 10) {
-                Image(systemName: action.symbolName)
-                    .font(.system(size: 20, weight: .semibold))
+                actionIcon(action)
+                    .frame(width: 24, height: 24)
                 Text(action.title)
                     .font(.system(size: 14, weight: .bold))
                 Text(action.subtitle)
@@ -202,9 +202,8 @@ private struct ScanWidgetView: View {
     private func expandedActionRow(_ action: ScanAppAction) -> some View {
         Link(destination: action.url) {
             HStack(spacing: 12) {
-                Image(systemName: action.symbolName)
-                    .font(.system(size: 19, weight: .semibold))
-                    .frame(width: 28)
+                actionIcon(action)
+                    .frame(width: 28, height: 28)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(action.title)
@@ -227,8 +226,8 @@ private struct ScanWidgetView: View {
     private func compactAction(_ action: ScanAppAction, prominent: Bool) -> some View {
         Link(destination: action.url) {
             HStack(spacing: 10) {
-                Image(systemName: action.symbolName)
-                    .font(.system(size: 16, weight: .semibold))
+                actionIcon(action)
+                    .frame(width: 20, height: 20)
 
                 Text(action.title)
                     .font(.system(size: 14, weight: .bold))
@@ -244,6 +243,25 @@ private struct ScanWidgetView: View {
             prominent ? .regular.tint(.white.opacity(0.10)).interactive() : .regular.interactive(),
             in: .rect(cornerRadius: 20)
         )
+    }
+
+    private var appIconImage: some View {
+        Image("ScanCodeIcon")
+            .resizable()
+            .scaledToFit()
+    }
+
+    @ViewBuilder
+    private func actionIcon(_ action: ScanAppAction) -> some View {
+        if action == .scanner {
+            appIconImage
+                .clipShape(.rect(cornerRadius: 6))
+        } else {
+            Image(systemName: action.symbolName)
+                .resizable()
+                .scaledToFit()
+                .foregroundStyle(.white)
+        }
     }
 
     private var backgroundGradient: some View {

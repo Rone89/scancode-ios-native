@@ -7,9 +7,9 @@ struct ScanCodeLiveActivityWidget: Widget {
         ActivityConfiguration(for: ScanLiveActivityAttributes.self) { context in
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 10) {
-                    Image(systemName: "qrcode.viewfinder")
-                        .font(.title2.weight(.bold))
-                        .foregroundStyle(.white)
+                    appIconImage
+                        .frame(width: 32, height: 32)
+                        .clipShape(.rect(cornerRadius: 8))
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(context.state.title)
@@ -34,9 +34,9 @@ struct ScanCodeLiveActivityWidget: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    Image(systemName: "qrcode.viewfinder")
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(.white)
+                    appIconImage
+                        .frame(width: 28, height: 28)
+                        .clipShape(.rect(cornerRadius: 7))
                 }
 
                 DynamicIslandExpandedRegion(.trailing) {
@@ -53,15 +53,17 @@ struct ScanCodeLiveActivityWidget: Widget {
                     }
                 }
             } compactLeading: {
-                Image(systemName: "qrcode.viewfinder")
-                    .foregroundStyle(.white)
+                appIconImage
+                    .frame(width: 20, height: 20)
+                    .clipShape(.rect(cornerRadius: 5))
             } compactTrailing: {
                 Text("扫")
                     .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(.white)
             } minimal: {
-                Image(systemName: "viewfinder")
-                    .foregroundStyle(.white)
+                appIconImage
+                    .frame(width: 18, height: 18)
+                    .clipShape(.rect(cornerRadius: 4))
             }
             .widgetURL(context.state.action.url)
             .keylineTint(.cyan)
@@ -81,6 +83,12 @@ struct ScanCodeLiveActivityWidget: Widget {
             isPrimary ? .regular.tint(.white.opacity(0.10)).interactive() : .regular.interactive(),
             in: .capsule
         )
+    }
+
+    private var appIconImage: some View {
+        Image("ScanCodeIcon")
+            .resizable()
+            .scaledToFit()
     }
 
     private var liveActivityBackground: some View {
