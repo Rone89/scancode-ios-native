@@ -357,7 +357,7 @@ private extension ScanViewController {
     func updatePreviewOrientation() {
         guard let connection = previewLayer?.connection else { return }
 
-        let interfaceOrientation = view.window?.windowScene?.interfaceOrientation ?? .portrait
+        let interfaceOrientation = view.window?.windowScene?.effectiveGeometry.interfaceOrientation ?? .portrait
         let rotationAngle: CGFloat
 
         switch interfaceOrientation {
@@ -517,7 +517,7 @@ private extension ScanViewController {
         }
     }
 
-    func route(for qrCodeString: String) -> PaymentRoute {
+    private func route(for qrCodeString: String) -> PaymentRoute {
         let lowercasedString = qrCodeString.lowercased()
 
         if isWeChatQRCode(lowercasedString) {
