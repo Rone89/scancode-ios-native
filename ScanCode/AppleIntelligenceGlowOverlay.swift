@@ -7,7 +7,8 @@ struct AppleIntelligenceGlowOverlay: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
+        ZStack {
+            Color.clear
             if reduceMotion {
                 glowFrame(time: 0, motionAmount: 0)
             } else {
@@ -22,6 +23,7 @@ struct AppleIntelligenceGlowOverlay: View {
         .allowsHitTesting(false)
         .ignoresSafeArea()
         .accessibilityHidden(true)
+        .background(Color.clear)
     }
 
     private func glowFrame(time: TimeInterval, motionAmount: Double) -> some View {
@@ -66,7 +68,6 @@ struct AppleIntelligenceGlowOverlay: View {
                 edgeSheen(proxy: proxy, offset: shimmerOffset)
                     .opacity(reduceMotion ? 0.08 : 0.12)
             }
-            .blendMode(.screen)
             .frame(width: proxy.size.width, height: proxy.size.height)
             .clipped()
         }
