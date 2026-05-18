@@ -1,0 +1,300 @@
+﻿2026-05-18T03:34:21.7933240Z Current runner version: '2.334.0'
+2026-05-18T03:34:21.7948070Z ##[group]Runner Image Provisioner
+2026-05-18T03:34:21.7948540Z Hosted Compute Agent
+2026-05-18T03:34:21.7948880Z Version: 20260422.526
+2026-05-18T03:34:21.7949240Z Commit: e1a9e573f4d0838b3a7c1b07401aeb29ed3635a9
+2026-05-18T03:34:21.7949670Z Build Date: 2026-04-22T09:31:31Z
+2026-05-18T03:34:21.7950070Z Worker ID: {25ee266b-7276-4c79-884e-7bfdf6b9738f}
+2026-05-18T03:34:21.7950490Z Azure Region: westus
+2026-05-18T03:34:21.7950820Z ##[endgroup]
+2026-05-18T03:34:21.7951610Z ##[group]Operating System
+2026-05-18T03:34:21.7951950Z macOS
+2026-05-18T03:34:21.7952220Z 15.7.4
+2026-05-18T03:34:21.7952490Z 24G517
+2026-05-18T03:34:21.7952770Z ##[endgroup]
+2026-05-18T03:34:21.7953060Z ##[group]Runner Image
+2026-05-18T03:34:21.7953380Z Image: macos-15-arm64
+2026-05-18T03:34:21.7953690Z Version: 20260427.0018.1
+2026-05-18T03:34:21.7954440Z Included Software: https://github.com/actions/runner-images/blob/macos-15-arm64/20260427.0018/images/macos/macos-15-arm64-Readme.md
+2026-05-18T03:34:21.7955410Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-15-arm64%2F20260427.0018
+2026-05-18T03:34:21.7956000Z ##[endgroup]
+2026-05-18T03:34:21.7956600Z ##[group]GITHUB_TOKEN Permissions
+2026-05-18T03:34:21.7957490Z Contents: write
+2026-05-18T03:34:21.7957790Z Metadata: read
+2026-05-18T03:34:21.7958080Z ##[endgroup]
+2026-05-18T03:34:21.7959320Z Secret source: Actions
+2026-05-18T03:34:21.7959700Z Prepare workflow directory
+2026-05-18T03:34:21.8212030Z Prepare all required actions
+2026-05-18T03:34:21.8238310Z Getting action download info
+2026-05-18T03:34:25.5939320Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-05-18T03:34:25.7764490Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-05-18T03:34:25.9084510Z Download action repository 'softprops/action-gh-release@v2' (SHA:3bb12739c298aeb8a4eeaf626c5b8d85266b0e65)
+2026-05-18T03:34:26.3312750Z Complete job name: Build unsigned IPA
+2026-05-18T03:34:26.3810880Z ##[group]Run actions/checkout@v4
+2026-05-18T03:34:26.3812090Z with:
+2026-05-18T03:34:26.3812650Z   repository: Rone89/scancode-ios-native
+2026-05-18T03:34:26.3813660Z   token: ***
+2026-05-18T03:34:26.3814160Z   ssh-strict: true
+2026-05-18T03:34:26.3814670Z   ssh-user: git
+2026-05-18T03:34:26.3815180Z   persist-credentials: true
+2026-05-18T03:34:26.3815750Z   clean: true
+2026-05-18T03:34:26.3816270Z   sparse-checkout-cone-mode: true
+2026-05-18T03:34:26.3816890Z   fetch-depth: 1
+2026-05-18T03:34:26.3817400Z   fetch-tags: false
+2026-05-18T03:34:26.3817930Z   show-progress: true
+2026-05-18T03:34:26.3818450Z   lfs: false
+2026-05-18T03:34:26.3818930Z   submodules: false
+2026-05-18T03:34:26.3819460Z   set-safe-directory: true
+2026-05-18T03:34:26.3820140Z env:
+2026-05-18T03:34:26.3820610Z   APP_NAME: ScanCode
+2026-05-18T03:34:26.3821140Z   RELEASE_BASE_VERSION: 1.0
+2026-05-18T03:34:26.3821700Z ##[endgroup]
+2026-05-18T03:34:26.6690470Z Syncing repository: Rone89/scancode-ios-native
+2026-05-18T03:34:26.6692250Z ##[group]Getting Git version info
+2026-05-18T03:34:26.6692760Z Working directory is '/Users/runner/work/scancode-ios-native/scancode-ios-native'
+2026-05-18T03:34:26.6693530Z [command]/opt/homebrew/bin/git version
+2026-05-18T03:34:26.7245140Z git version 2.54.0
+2026-05-18T03:34:26.7270390Z ##[endgroup]
+2026-05-18T03:34:26.7277750Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/98a8fab5-9955-489a-8b93-b699672a3f85/.gitconfig'
+2026-05-18T03:34:26.7285170Z Temporarily overriding HOME='/Users/runner/work/_temp/98a8fab5-9955-489a-8b93-b699672a3f85' before making global git config changes
+2026-05-18T03:34:26.7286270Z Adding repository directory to the temporary git global config as a safe directory
+2026-05-18T03:34:26.7295370Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:26.7394630Z Deleting the contents of '/Users/runner/work/scancode-ios-native/scancode-ios-native'
+2026-05-18T03:34:26.7397180Z ##[group]Initializing the repository
+2026-05-18T03:34:26.7401580Z [command]/opt/homebrew/bin/git init /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:26.7588880Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-05-18T03:34:26.7589830Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-05-18T03:34:26.7590830Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-05-18T03:34:26.7591410Z hint: call:
+2026-05-18T03:34:26.7591690Z hint:
+2026-05-18T03:34:26.7592090Z hint: 	git config --global init.defaultBranch <name>
+2026-05-18T03:34:26.7592520Z hint:
+2026-05-18T03:34:26.7592900Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-05-18T03:34:26.7593460Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-05-18T03:34:26.7593910Z hint:
+2026-05-18T03:34:26.7594200Z hint: 	git branch -m <name>
+2026-05-18T03:34:26.7594560Z hint:
+2026-05-18T03:34:26.7594950Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-05-18T03:34:26.7595630Z Initialized empty Git repository in /Users/runner/work/scancode-ios-native/scancode-ios-native/.git/
+2026-05-18T03:34:26.7597800Z [command]/opt/homebrew/bin/git remote add origin https://github.com/Rone89/scancode-ios-native
+2026-05-18T03:34:26.7667310Z ##[endgroup]
+2026-05-18T03:34:26.7667850Z ##[group]Disabling automatic garbage collection
+2026-05-18T03:34:26.7669290Z [command]/opt/homebrew/bin/git config --local gc.auto 0
+2026-05-18T03:34:26.7724480Z ##[endgroup]
+2026-05-18T03:34:26.7725010Z ##[group]Setting up auth
+2026-05-18T03:34:26.7730190Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-05-18T03:34:26.7784500Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-05-18T03:34:26.8715830Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-05-18T03:34:26.8775210Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-05-18T03:34:26.9608650Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-05-18T03:34:26.9670970Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-05-18T03:34:27.0373940Z [command]/opt/homebrew/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-05-18T03:34:27.0436850Z ##[endgroup]
+2026-05-18T03:34:27.0437380Z ##[group]Fetching the repository
+2026-05-18T03:34:27.0442300Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +3c855a554d87d77ab1d351584db95fe2e2598b1e:refs/remotes/origin/main
+2026-05-18T03:34:27.5594320Z From https://github.com/Rone89/scancode-ios-native
+2026-05-18T03:34:27.5595560Z  * [new ref]         3c855a554d87d77ab1d351584db95fe2e2598b1e -> origin/main
+2026-05-18T03:34:27.5713590Z ##[endgroup]
+2026-05-18T03:34:27.5714420Z ##[group]Determining the checkout info
+2026-05-18T03:34:27.5714830Z ##[endgroup]
+2026-05-18T03:34:27.5717720Z [command]/opt/homebrew/bin/git sparse-checkout disable
+2026-05-18T03:34:27.5813070Z [command]/opt/homebrew/bin/git config --local --unset-all extensions.worktreeConfig
+2026-05-18T03:34:27.5876050Z ##[group]Checking out the ref
+2026-05-18T03:34:27.5877950Z [command]/opt/homebrew/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-05-18T03:34:27.6018820Z Switched to a new branch 'main'
+2026-05-18T03:34:27.6037240Z branch 'main' set up to track 'origin/main'.
+2026-05-18T03:34:27.6041200Z ##[endgroup]
+2026-05-18T03:34:27.6133070Z [command]/opt/homebrew/bin/git log -1 --format=%H
+2026-05-18T03:34:27.6199320Z 3c855a554d87d77ab1d351584db95fe2e2598b1e
+2026-05-18T03:34:27.6357220Z ##[group]Run xcodebuild -version
+2026-05-18T03:34:27.6357590Z [36;1mxcodebuild -version[0m
+2026-05-18T03:34:27.6405030Z shell: /bin/bash -e {0}
+2026-05-18T03:34:27.6405270Z env:
+2026-05-18T03:34:27.6405450Z   APP_NAME: ScanCode
+2026-05-18T03:34:27.6405650Z   RELEASE_BASE_VERSION: 1.0
+2026-05-18T03:34:27.6405840Z ##[endgroup]
+2026-05-18T03:34:27.8773060Z Xcode 16.4
+2026-05-18T03:34:27.8785300Z Build version 16F6
+2026-05-18T03:34:27.8831920Z ##[group]Run set -euo pipefail
+2026-05-18T03:34:27.8832230Z [36;1mset -euo pipefail[0m
+2026-05-18T03:34:27.8832430Z [36;1mxcodebuild \[0m
+2026-05-18T03:34:27.8832670Z [36;1m  -project ScanCode.xcodeproj \[0m
+2026-05-18T03:34:27.8832910Z [36;1m  -scheme ScanCode \[0m
+2026-05-18T03:34:27.8833120Z [36;1m  -configuration Release \[0m
+2026-05-18T03:34:27.8833340Z [36;1m  -sdk iphoneos \[0m
+2026-05-18T03:34:27.8833620Z [36;1m  -destination 'generic/platform=iOS' \[0m
+2026-05-18T03:34:27.8833870Z [36;1m  -derivedDataPath build \[0m
+2026-05-18T03:34:27.8834100Z [36;1m  CODE_SIGNING_ALLOWED=NO \[0m
+2026-05-18T03:34:27.8834330Z [36;1m  CODE_SIGNING_REQUIRED=NO \[0m
+2026-05-18T03:34:27.8834560Z [36;1m  CODE_SIGN_IDENTITY="" \[0m
+2026-05-18T03:34:27.8834820Z [36;1m  MARKETING_VERSION="${RELEASE_BASE_VERSION}" \[0m
+2026-05-18T03:34:27.8835130Z [36;1m  CURRENT_PROJECT_VERSION="${GITHUB_RUN_NUMBER}" \[0m
+2026-05-18T03:34:27.8835410Z [36;1m  build[0m
+2026-05-18T03:34:27.8866960Z shell: /bin/bash -e {0}
+2026-05-18T03:34:27.8867160Z env:
+2026-05-18T03:34:27.8867330Z   APP_NAME: ScanCode
+2026-05-18T03:34:27.8867600Z   RELEASE_BASE_VERSION: 1.0
+2026-05-18T03:34:27.8867810Z ##[endgroup]
+2026-05-18T03:34:29.6327290Z Command line invocation:
+2026-05-18T03:34:29.6409670Z     /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/xcodebuild -project ScanCode.xcodeproj -scheme ScanCode -configuration Release -sdk iphoneos -destination generic/platform=iOS -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= MARKETING_VERSION=1.0 CURRENT_PROJECT_VERSION=2 build
+2026-05-18T03:34:29.6411520Z 
+2026-05-18T03:34:29.6411810Z Build settings from command line:
+2026-05-18T03:34:29.6412410Z     CODE_SIGN_IDENTITY = 
+2026-05-18T03:34:29.6412940Z     CODE_SIGNING_ALLOWED = NO
+2026-05-18T03:34:29.6413400Z     CODE_SIGNING_REQUIRED = NO
+2026-05-18T03:34:29.6413740Z     CURRENT_PROJECT_VERSION = 2
+2026-05-18T03:34:29.6414290Z     MARKETING_VERSION = 1.0
+2026-05-18T03:34:29.6414780Z     SDKROOT = iphoneos18.5
+2026-05-18T03:34:29.6415080Z 
+2026-05-18T03:34:32.3625090Z note: Using codesigning identity override: 
+2026-05-18T03:34:33.4195370Z ComputePackagePrebuildTargetDependencyGraph
+2026-05-18T03:34:33.5305450Z 
+2026-05-18T03:34:33.5408100Z Prepare packages
+2026-05-18T03:34:33.5509500Z 
+2026-05-18T03:34:33.5739620Z CreateBuildRequest
+2026-05-18T03:34:33.5845860Z 
+2026-05-18T03:34:33.5953370Z SendProjectDescription
+2026-05-18T03:34:33.6094950Z 
+2026-05-18T03:34:33.6205490Z CreateBuildOperation
+2026-05-18T03:34:33.6311020Z 
+2026-05-18T03:34:33.6421130Z ComputeTargetDependencyGraph
+2026-05-18T03:34:33.6536400Z note: Building targets in dependency order
+2026-05-18T03:34:33.6667560Z note: Target dependency graph (1 target)
+2026-05-18T03:34:33.6828370Z     Target 'ScanCode' in project 'ScanCode' (no dependencies)
+2026-05-18T03:34:33.6935740Z 
+2026-05-18T03:34:33.7038650Z GatherProvisioningInputs
+2026-05-18T03:34:33.7196840Z 
+2026-05-18T03:34:33.7310260Z CreateBuildDescription
+2026-05-18T03:34:33.7493870Z 
+2026-05-18T03:34:33.7655480Z ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+2026-05-18T03:34:35.4557140Z 
+2026-05-18T03:34:35.4559390Z ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/ibtool --version --output-format xml1
+2026-05-18T03:34:37.9365920Z 
+2026-05-18T03:34:37.9381150Z ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk -x c -c /dev/null
+2026-05-18T03:34:37.9490000Z 
+2026-05-18T03:34:37.9592660Z ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+2026-05-18T03:34:37.9694280Z 
+2026-05-18T03:34:37.9797700Z Build description signature: feb3bc018a4bf57f1653e7a981d5fc8f
+2026-05-18T03:34:37.9905760Z Build description path: /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/XCBuildData/feb3bc018a4bf57f1653e7a981d5fc8f.xcbuilddata
+2026-05-18T03:34:38.0230320Z CreateBuildDirectory /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Products
+2026-05-18T03:34:38.0338430Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native/ScanCode.xcodeproj
+2026-05-18T03:34:38.0440160Z     builtin-create-build-directory /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Products
+2026-05-18T03:34:38.0550390Z 
+2026-05-18T03:34:38.0651800Z CreateBuildDirectory /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex
+2026-05-18T03:34:38.0752500Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native/ScanCode.xcodeproj
+2026-05-18T03:34:38.0871110Z     builtin-create-build-directory /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex
+2026-05-18T03:34:38.0972470Z 
+2026-05-18T03:34:38.1082670Z ClangStatCache /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk /Users/runner/work/scancode-ios-native/scancode-ios-native/build/SDKStatCaches.noindex/iphoneos18.5-22F76-a529daf784b3616c7c04a36aeb7f5c05.sdkstatcache
+2026-05-18T03:34:38.1187730Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native/ScanCode.xcodeproj
+2026-05-18T03:34:38.1290790Z     /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk -o /Users/runner/work/scancode-ios-native/scancode-ios-native/build/SDKStatCaches.noindex/iphoneos18.5-22F76-a529daf784b3616c7c04a36aeb7f5c05.sdkstatcache
+2026-05-18T03:34:41.1855940Z 
+2026-05-18T03:34:41.1958560Z WriteAuxiliaryFile /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode-f19bada74293b1f9440cea9b66ba2f64-VFS-iphoneos/all-product-headers.yaml
+2026-05-18T03:34:41.2152580Z ** BUILD FAILED **
+2026-05-18T03:34:41.2153240Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native/ScanCode.xcodeproj
+2026-05-18T03:34:41.2256400Z 
+2026-05-18T03:34:41.2262930Z     write-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode-f19bada74293b1f9440cea9b66ba2f64-VFS-iphoneos/all-product-headers.yaml
+2026-05-18T03:34:41.2263740Z 
+2026-05-18T03:34:41.2263740Z 
+2026-05-18T03:34:41.2364470Z The following build commands failed:
+2026-05-18T03:34:41.2365180Z CreateBuildDirectory /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release-iphoneos
+2026-05-18T03:34:41.2467950Z 	SwiftDriver\ Compilation\ Requirements ScanCode normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2468620Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native/ScanCode.xcodeproj
+2026-05-18T03:34:41.2571120Z 	SwiftDriver\ Compilation ScanCode normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2572060Z     builtin-create-build-directory /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release-iphoneos
+2026-05-18T03:34:41.2666820Z 	Building project ScanCode with scheme ScanCode and configuration Release
+2026-05-18T03:34:41.2667730Z 
+2026-05-18T03:34:41.2669230Z (3 failures)
+2026-05-18T03:34:41.2670570Z CreateBuildDirectory /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Products/Release-iphoneos
+2026-05-18T03:34:41.2674010Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native/ScanCode.xcodeproj
+2026-05-18T03:34:41.2679680Z     builtin-create-build-directory /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Products/Release-iphoneos
+2026-05-18T03:34:41.2682090Z 
+2026-05-18T03:34:41.2683770Z WriteAuxiliaryFile /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode.hmap (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2685980Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2687700Z     write-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode.hmap
+2026-05-18T03:34:41.2689320Z 
+2026-05-18T03:34:41.2691190Z WriteAuxiliaryFile /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode.DependencyStaticMetadataFileList (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2693680Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2696130Z     write-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode.DependencyStaticMetadataFileList
+2026-05-18T03:34:41.2697060Z 
+2026-05-18T03:34:41.2698220Z WriteAuxiliaryFile /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode.DependencyMetadataFileList (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2699420Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2700240Z     write-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode.DependencyMetadataFileList
+2026-05-18T03:34:41.2700920Z 
+2026-05-18T03:34:41.2701640Z WriteAuxiliaryFile /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-project-headers.hmap (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2703540Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2704320Z     write-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-project-headers.hmap
+2026-05-18T03:34:41.2705540Z 
+2026-05-18T03:34:41.2708640Z WriteAuxiliaryFile /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-own-target-headers.hmap (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2709560Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2711280Z     write-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-own-target-headers.hmap
+2026-05-18T03:34:41.2712230Z 
+2026-05-18T03:34:41.2712850Z WriteAuxiliaryFile /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-generated-files.hmap (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2714280Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2715050Z     write-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-generated-files.hmap
+2026-05-18T03:34:41.2715690Z 
+2026-05-18T03:34:41.2716380Z WriteAuxiliaryFile /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-all-target-headers.hmap (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2717710Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2718500Z     write-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-all-target-headers.hmap
+2026-05-18T03:34:41.2719050Z 
+2026-05-18T03:34:41.2719730Z WriteAuxiliaryFile /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-all-non-framework-target-headers.hmap (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2720600Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2721300Z     write-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-all-non-framework-target-headers.hmap
+2026-05-18T03:34:41.2721940Z 
+2026-05-18T03:34:41.2722650Z WriteAuxiliaryFile /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode_const_extract_protocols.json (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2723980Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2725700Z     write-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode_const_extract_protocols.json
+2026-05-18T03:34:41.2728220Z 
+2026-05-18T03:34:41.2730350Z WriteAuxiliaryFile /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode.SwiftFileList (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2733100Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2735190Z     write-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode.SwiftFileList
+2026-05-18T03:34:41.2737330Z 
+2026-05-18T03:34:41.2739320Z WriteAuxiliaryFile /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode.SwiftConstValuesFileList (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2741870Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2743880Z     write-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode.SwiftConstValuesFileList
+2026-05-18T03:34:41.2745900Z 
+2026-05-18T03:34:41.2748230Z WriteAuxiliaryFile /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode.LinkFileList (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2751750Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2753440Z     write-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode.LinkFileList
+2026-05-18T03:34:41.2754550Z 
+2026-05-18T03:34:41.2755340Z WriteAuxiliaryFile /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode-OutputFileMap.json (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2756250Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2759410Z     write-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode-OutputFileMap.json
+2026-05-18T03:34:41.2761620Z 
+2026-05-18T03:34:41.2762560Z MkDir /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Products/Release-iphoneos/ScanCode.app (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2763300Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2765120Z     /bin/mkdir -p /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Products/Release-iphoneos/ScanCode.app
+2026-05-18T03:34:41.2766190Z 
+2026-05-18T03:34:41.2767500Z CompileStoryboard /Users/runner/work/scancode-ios-native/scancode-ios-native/ScanCode/LaunchScreen.storyboard (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2769040Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2771520Z     /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/ibtool --errors --warnings --notices --module ScanCode --output-partial-info-plist /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/LaunchScreen-SBPartialInfo.plist --auto-activate-custom-fonts --target-device iphone --target-device ipad --minimum-deployment-target 15.0 --output-format human-readable-text /Users/runner/work/scancode-ios-native/scancode-ios-native/ScanCode/LaunchScreen.storyboard --compilation-directory /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build
+2026-05-18T03:34:41.2773700Z 
+2026-05-18T03:34:41.2774040Z SwiftDriver\ Compilation\ Requirements ScanCode normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2774710Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2789990Z     builtin-Swift-Compilation-Requirements -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ScanCode -O -whole-module-optimization -enforce-exclusivity\=checked @/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode.SwiftFileList -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk -target arm64-apple-ios15.0 -g -module-cache-path /Users/runner/work/scancode-ios-native/scancode-ios-native/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Products/Release-iphoneos -F /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Products/Release-iphoneos -emit-localized-strings -emit-localized-strings-path /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64 -c -num-threads 3 -Xcc -ivfsstatcache -Xcc /Users/runner/work/scancode-ios-native/scancode-ios-native/build/SDKStatCaches.noindex/iphoneos18.5-22F76-a529daf784b3616c7c04a36aeb7f5c05.sdkstatcache -output-file-map /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-generated-files.hmap -Xcc -I/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-own-target-headers.hmap -Xcc -I/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-project-headers.hmap -Xcc -I/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Products/Release-iphoneos/include -Xcc -I/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode-Swift.h -working-directory /Users/runner/work/scancode-ios-native/scancode-ios-native -no-emit-module-separately-wmo
+2026-05-18T03:34:41.2808710Z error: Build input files cannot be found: '/Users/runner/work/scancode-ios-native/scancode-ios-native/ScanCode/SceneDelegate.swift', '/Users/runner/work/scancode-ios-native/scancode-ios-native/ScanCode/ScanViewController.swift'. Did you forget to declare these files as outputs of any script phases or custom build rules which produce them? (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2809880Z 
+2026-05-18T03:34:41.2810260Z SwiftDriver\ Compilation ScanCode normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2810900Z     cd /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:41.2824930Z     builtin-Swift-Compilation -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ScanCode -O -whole-module-optimization -enforce-exclusivity\=checked @/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode.SwiftFileList -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk -target arm64-apple-ios15.0 -g -module-cache-path /Users/runner/work/scancode-ios-native/scancode-ios-native/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Products/Release-iphoneos -F /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Products/Release-iphoneos -emit-localized-strings -emit-localized-strings-path /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64 -c -num-threads 3 -Xcc -ivfsstatcache -Xcc /Users/runner/work/scancode-ios-native/scancode-ios-native/build/SDKStatCaches.noindex/iphoneos18.5-22F76-a529daf784b3616c7c04a36aeb7f5c05.sdkstatcache -output-file-map /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/scancode-ios-native/scancode-ios-native/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-generated-files.hmap -Xcc -I/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-own-target-headers.hmap -Xcc -I/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/ScanCode-project-headers.hmap -Xcc -I/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Products/Release-iphoneos/include -Xcc -I/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/scancode-ios-native/scancode-ios-native/build/Build/Intermediates.noindex/ScanCode.build/Release-iphoneos/ScanCode.build/Objects-normal/arm64/ScanCode-Swift.h -working-directory /Users/runner/work/scancode-ios-native/scancode-ios-native -no-emit-module-separately-wmo
+2026-05-18T03:34:41.2842970Z error: Build input files cannot be found: '/Users/runner/work/scancode-ios-native/scancode-ios-native/ScanCode/SceneDelegate.swift', '/Users/runner/work/scancode-ios-native/scancode-ios-native/ScanCode/ScanViewController.swift'. Did you forget to declare these files as outputs of any script phases or custom build rules which produce them? (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2847190Z 
+2026-05-18T03:34:41.2848240Z note: Disabling previews because SWIFT_VERSION is set and SWIFT_OPTIMIZATION_LEVEL=-O, expected -Onone (in target 'ScanCode' from project 'ScanCode')
+2026-05-18T03:34:41.2887010Z ##[error]Process completed with exit code 65.
+2026-05-18T03:34:41.3139760Z Post job cleanup.
+2026-05-18T03:34:41.8470260Z [command]/opt/homebrew/bin/git version
+2026-05-18T03:34:41.9320680Z git version 2.54.0
+2026-05-18T03:34:41.9832480Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/07063165-6479-4673-853b-feb9080cf2a8/.gitconfig'
+2026-05-18T03:34:41.9933220Z Temporarily overriding HOME='/Users/runner/work/_temp/07063165-6479-4673-853b-feb9080cf2a8' before making global git config changes
+2026-05-18T03:34:42.0034680Z Adding repository directory to the temporary git global config as a safe directory
+2026-05-18T03:34:42.0137130Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/scancode-ios-native/scancode-ios-native
+2026-05-18T03:34:42.0467220Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-05-18T03:34:42.0672820Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-05-18T03:34:42.2241480Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-05-18T03:34:42.2286630Z http.https://github.com/.extraheader
+2026-05-18T03:34:42.2291010Z [command]/opt/homebrew/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-05-18T03:34:42.2294900Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-05-18T03:34:42.4153740Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-05-18T03:34:42.4302400Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-05-18T03:34:42.5748140Z Cleaning up orphan processes
+2026-05-18T03:34:42.9381490Z Terminate orphan process: pid (2852) (ibtoold)
+2026-05-18T03:34:43.1834330Z ##[warning]Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v4. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Node.js 20 will be removed from the runner on September 16th, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
