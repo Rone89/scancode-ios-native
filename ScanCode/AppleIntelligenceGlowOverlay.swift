@@ -116,7 +116,7 @@ private extension AppleIntelligenceGlowOverlayView {
         }
     }
 
-    func ambientSegment(
+    private func ambientSegment(
         color: UIColor,
         lineWidth: CGFloat,
         dashLength: CGFloat,
@@ -136,7 +136,7 @@ private extension AppleIntelligenceGlowOverlayView {
         )
     }
 
-    func glassSegment(
+    private func glassSegment(
         dashLength: CGFloat,
         phaseOffset: CGFloat,
         duration: CFTimeInterval,
@@ -154,7 +154,7 @@ private extension AppleIntelligenceGlowOverlayView {
         )
     }
 
-    func makeSegment(
+    private func makeSegment(
         color: UIColor,
         lineWidth: CGFloat,
         dashLength: CGFloat,
@@ -266,7 +266,7 @@ private extension AppleIntelligenceGlowOverlayView {
         }
     }
 
-    func addPhaseAnimation(to segment: GlowSegment, reversed: Bool) {
+    private func addPhaseAnimation(to segment: GlowSegment, reversed: Bool) {
         guard let pattern = segment.layer.lineDashPattern, pattern.count >= 2 else { return }
 
         let dashLength = CGFloat(pattern[0].doubleValue)
