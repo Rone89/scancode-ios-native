@@ -11,7 +11,37 @@
 		13A1A0022C00000100000001 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A0122C00000100000001 /* SceneDelegate.swift */; };
 		13A1A0032C00000100000001 /* ScanViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A0132C00000100000001 /* ScanViewController.swift */; };
 		13A1A0042C00000100000001 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 13A1A0142C00000100000001 /* LaunchScreen.storyboard */; };
+		13A1A0052C00000100000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13A1A0162C00000100000001 /* Assets.xcassets */; };
+		13A1A0062C00000100000001 /* ScanAppAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A0172C00000100000001 /* ScanAppAction.swift */; };
+		13A1A0072C00000100000001 /* ScanCodeWidgetsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A01A2C00000100000001 /* ScanCodeWidgetsBundle.swift */; };
+		13A1A0082C00000100000001 /* ScanCodeQuickActionsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A01B2C00000100000001 /* ScanCodeQuickActionsWidget.swift */; };
+		13A1A0092C00000100000001 /* ScanAppAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A0172C00000100000001 /* ScanAppAction.swift */; };
+		13A1A00A2C00000100000001 /* ScanCodeWidgetsExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 13A1A0192C00000100000001 /* ScanCodeWidgetsExtension.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		13A1A0B02C00000100000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 13A1A0702C00000100000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 13A1A0412C00000100000001;
+			remoteInfo = ScanCodeWidgetsExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		13A1A0212C00000100000001 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				13A1A00A2C00000100000001 /* ScanCodeWidgetsExtension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		13A1A0102C00000100000001 /* ScanCode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScanCode.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -20,10 +50,24 @@
 		13A1A0132C00000100000001 /* ScanViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanViewController.swift; sourceTree = "<group>"; };
 		13A1A0142C00000100000001 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		13A1A0152C00000100000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		13A1A0162C00000100000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		13A1A0172C00000100000001 /* ScanAppAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanAppAction.swift; sourceTree = "<group>"; };
+		13A1A0182C00000100000001 /* ScanCodeWidgets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ScanCodeWidgets; sourceTree = "<group>"; };
+		13A1A0192C00000100000001 /* ScanCodeWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ScanCodeWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		13A1A01A2C00000100000001 /* ScanCodeWidgetsBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanCodeWidgetsBundle.swift; sourceTree = "<group>"; };
+		13A1A01B2C00000100000001 /* ScanCodeQuickActionsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanCodeQuickActionsWidget.swift; sourceTree = "<group>"; };
+		13A1A01C2C00000100000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		13A1A0202C00000100000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		13A1A0222C00000100000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -37,6 +81,8 @@
 			isa = PBXGroup;
 			children = (
 				13A1A0312C00000100000001 /* ScanCode */,
+				13A1A0332C00000100000001 /* Shared */,
+				13A1A0342C00000100000001 /* ScanCodeWidgets */,
 				13A1A0322C00000100000001 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -49,14 +95,34 @@
 				13A1A0132C00000100000001 /* ScanViewController.swift */,
 				13A1A0142C00000100000001 /* LaunchScreen.storyboard */,
 				13A1A0152C00000100000001 /* Info.plist */,
+				13A1A0162C00000100000001 /* Assets.xcassets */,
 			);
 			path = ScanCode;
+			sourceTree = "<group>";
+		};
+		13A1A0332C00000100000001 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				13A1A0172C00000100000001 /* ScanAppAction.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		13A1A0342C00000100000001 /* ScanCodeWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				13A1A01A2C00000100000001 /* ScanCodeWidgetsBundle.swift */,
+				13A1A01B2C00000100000001 /* ScanCodeQuickActionsWidget.swift */,
+				13A1A01C2C00000100000001 /* Info.plist */,
+			);
+			path = ScanCodeWidgets;
 			sourceTree = "<group>";
 		};
 		13A1A0322C00000100000001 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				13A1A0102C00000100000001 /* ScanCode.app */,
+				13A1A0192C00000100000001 /* ScanCodeWidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -71,15 +137,34 @@
 				13A1A0502C00000100000001 /* Sources */,
 				13A1A0202C00000100000001 /* Frameworks */,
 				13A1A0602C00000100000001 /* Resources */,
+				13A1A0212C00000100000001 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				13A1A0C02C00000100000001 /* PBXTargetDependency */,
 			);
 			name = ScanCode;
 			productName = ScanCode;
 			productReference = 13A1A0102C00000100000001 /* ScanCode.app */;
 			productType = "com.apple.product-type.application";
+		};
+		13A1A0412C00000100000001 /* ScanCodeWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 13A1A0D02C00000100000001 /* Build configuration list for PBXNativeTarget "ScanCodeWidgetsExtension" */;
+			buildPhases = (
+				13A1A0512C00000100000001 /* Sources */,
+				13A1A0222C00000100000001 /* Frameworks */,
+				13A1A0612C00000100000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ScanCodeWidgetsExtension;
+			productName = ScanCodeWidgetsExtension;
+			productReference = 13A1A0192C00000100000001 /* ScanCodeWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -88,11 +173,14 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1600;
-				LastUpgradeCheck = 1600;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					13A1A0402C00000100000001 = {
-						CreatedOnToolsVersion = 16.0;
+						CreatedOnToolsVersion = 26.0;
+					};
+					13A1A0412C00000100000001 = {
+						CreatedOnToolsVersion = 26.0;
 					};
 				};
 			};
@@ -110,6 +198,7 @@
 			projectRoot = "";
 			targets = (
 				13A1A0402C00000100000001 /* ScanCode */,
+				13A1A0412C00000100000001 /* ScanCodeWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -119,7 +208,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				13A1A0052C00000100000001 /* Assets.xcassets in Resources */,
 				13A1A0042C00000100000001 /* LaunchScreen.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		13A1A0612C00000100000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -131,12 +228,31 @@
 			buildActionMask = 2147483647;
 			files = (
 				13A1A0012C00000100000001 /* AppDelegate.swift in Sources */,
+				13A1A0062C00000100000001 /* ScanAppAction.swift in Sources */,
 				13A1A0022C00000100000001 /* SceneDelegate.swift in Sources */,
 				13A1A0032C00000100000001 /* ScanViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		13A1A0512C00000100000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				13A1A0092C00000100000001 /* ScanAppAction.swift in Sources */,
+				13A1A0082C00000100000001 /* ScanCodeQuickActionsWidget.swift in Sources */,
+				13A1A0072C00000100000001 /* ScanCodeWidgetsBundle.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		13A1A0C02C00000100000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 13A1A0412C00000100000001 /* ScanCodeWidgetsExtension */;
+			targetProxy = 13A1A0B02C00000100000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		13A1A0812C00000100000001 /* Debug */ = {
@@ -190,7 +306,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -246,7 +362,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -259,17 +375,19 @@
 		13A1A0912C00000100000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ScanCode/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.codex.scancode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -284,23 +402,76 @@
 		13A1A0922C00000100000001 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ScanCode/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.codex.scancode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		13A1A0932C00000100000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ScanCodeWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.codex.scancode.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		13A1A0942C00000100000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ScanCodeWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.codex.scancode.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -324,6 +495,15 @@
 			buildConfigurations = (
 				13A1A0912C00000100000001 /* Debug */,
 				13A1A0922C00000100000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		13A1A0D02C00000100000001 /* Build configuration list for PBXNativeTarget "ScanCodeWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				13A1A0932C00000100000001 /* Debug */,
+				13A1A0942C00000100000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

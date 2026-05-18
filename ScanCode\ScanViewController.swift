@@ -1,15 +1,19 @@
 import AVFoundation
+import CoreMedia
+import QuartzCore
 import UIKit
 
-/// 原生扫码页面。
+/// iOS 26 原生扫码页面。
 ///
 /// 实现点：
 /// - 使用 AVFoundation 的 AVCaptureSession / AVCaptureMetadataOutput 识别二维码。
 /// - 使用 AVCaptureVideoPreviewLayer 作为相机预览层，不引入第三方扫码库。
-/// - 识别成功后，通过 transformedMetadataObject(for:) 获取二维码在预览层中的位置，并绘制绿色边框动画。
+/// - 使用 iOS 26 原生 Liquid Glass 组件，保持系统风格与原生交互。
+/// - 识别成功后，通过 transformedMetadataObject(for:) 获取二维码位置并绘制绿色边框动画。
 /// - 识别成功后触发 UIImpactFeedbackGenerator(style: .medium) 硬件触感反馈。
 /// - 支持双指捏合缩放，直接修改 AVCaptureDevice.videoZoomFactor。
-/// - 根据二维码内容分发到微信、支付宝或系统弹窗选择支付方式。
+/// - 支持通过小组件和 App 内快捷按钮直接拉起微信扫一扫、支付宝扫码。
+/// - 通过更低的会话分辨率、串行识别队列、中心区域识别和帧率限制降低发热。
 final class ScanViewController: UIViewController {
 
     private enum ScanState {
@@ -24,12 +28,18 @@ final class ScanViewController: UIViewController {
     }
 
     private let captureSession = AVCaptureSession()
-    private let sessionQueue = DispatchQueue(label: "com.example.scancode.capture-session")
+    private let metadataOutput = AVCaptureMetadataOutput()
+    private let sessionQueue = DispatchQueue(label: "com.codex.scancode.capture-session", qos: .userInitiated)
+    private let metadataOutputQueue = DispatchQueue(label: "com.codex.scancode.metadata-output", qos: .userInitiated)
+    private let stateLock = NSLock()
 
     private var previewLayer: AVCaptureVideoPreviewLayer?
     private var captureDevice: AVCaptureDevice?
     private var scanState: ScanState = .idle
     private var initialZoomFactor: CGFloat = 1
+    private var lastAppliedZoomFactor: CGFloat = 1
+    private var lastHandledPayload = ""
+    private var lastHandledTimestamp: CFTimeInterval = 0
 
     private let qrCodeBorderLayer: CAShapeLayer = {
         let layer = CAShapeLayer()
@@ -44,13 +54,75 @@ final class ScanViewController: UIViewController {
 
     private let hapticFeedback = UIImpactFeedbackGenerator(style: .medium)
 
+    private lazy var headerGlassView = Self.makeGlassView(cornerRadius: 30)
+    private lazy var footerGlassView = Self.makeGlassView(cornerRadius: 32)
+
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "ScanCode"
+        label.font = .systemFont(ofSize: 28, weight: .bold)
+        label.textColor = .white
+        return label
+    }()
+
+    private let subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 2
+        label.text = "iOS 26 原生扫码页，液态玻璃风格，低功耗扫码管线。"
+        label.font = .systemFont(ofSize: 15, weight: .medium)
+        label.textColor = UIColor.white.withAlphaComponent(0.88)
+        return label
+    }()
+
+    private let footerHintLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 0
+        label.text = "双指可缩放相机。通用二维码选择“微信扫一扫”后，会直接拉起微信扫一扫，不再额外确认。"
+        label.font = .systemFont(ofSize: 13, weight: .medium)
+        label.textColor = UIColor.white.withAlphaComponent(0.82)
+        return label
+    }()
+
+    private lazy var weChatShortcutButton: UIButton = {
+        let action = UIAction { [weak self] _ in
+            self?.handleExternalAction(.weChatScanner)
+        }
+        return Self.makeGlassButton(
+            title: "微信扫一扫",
+            subtitle: "聚合码选微信可直达",
+            systemImage: "message.fill",
+            prominent: true,
+            action: action
+        )
+    }()
+
+    private lazy var alipayShortcutButton: UIButton = {
+        let action = UIAction { [weak self] _ in
+            self?.handleExternalAction(.alipayScanner)
+        }
+        return Self.makeGlassButton(
+            title: "支付宝扫码",
+            subtitle: "拉起支付宝原生解析",
+            systemImage: "creditcard.fill",
+            prominent: false,
+            action: action
+        )
+    }()
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        .lightContent
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        title = "扫码"
         view.backgroundColor = .black
         hapticFeedback.prepare()
         configurePreviewLayer()
+        configureOverlayUI()
         configurePinchGesture()
         requestCameraPermissionAndStart()
     }
@@ -60,14 +132,13 @@ final class ScanViewController: UIViewController {
 
         previewLayer?.frame = view.bounds
         updatePreviewOrientation()
+        updateRectOfInterest()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
-        scanState = .idle
-        hideQRCodeBorder()
-        startScanningIfPossible()
+        resumeScanningAfterResultHandling()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -78,6 +149,21 @@ final class ScanViewController: UIViewController {
 
     deinit {
         stopScanning()
+    }
+
+    func handleExternalAction(_ action: ScanAppAction) {
+        switch action {
+        case .scanner:
+            resumeScanningAfterResultHandling()
+
+        case .weChatScanner:
+            beginManualRouting()
+            openWeChatScanner()
+
+        case .alipayScanner:
+            beginManualRouting()
+            openAlipayScanner()
+        }
     }
 }
 
@@ -126,6 +212,93 @@ private extension ScanViewController {
     }
 }
 
+// MARK: - UI
+
+private extension ScanViewController {
+
+    static func makeGlassView(cornerRadius: CGFloat) -> UIVisualEffectView {
+        let effect = UIGlassEffect(style: .regular)
+        effect.tintColor = UIColor.white.withAlphaComponent(0.06)
+
+        let effectView = UIVisualEffectView(effect: effect)
+        effectView.translatesAutoresizingMaskIntoConstraints = false
+        effectView.clipsToBounds = true
+        effectView.layer.cornerRadius = cornerRadius
+        effectView.layer.cornerCurve = .continuous
+        return effectView
+    }
+
+    static func makeGlassButton(
+        title: String,
+        subtitle: String,
+        systemImage: String,
+        prominent: Bool,
+        action: UIAction
+    ) -> UIButton {
+        var configuration = prominent ? UIButton.Configuration.prominentGlass() : UIButton.Configuration.glass()
+        configuration.title = title
+        configuration.subtitle = subtitle
+        configuration.image = UIImage(systemName: systemImage)
+        configuration.imagePlacement = .leading
+        configuration.imagePadding = 10
+        configuration.titleAlignment = .leading
+        configuration.cornerStyle = .large
+        configuration.baseForegroundColor = .label
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16)
+
+        let button = UIButton(type: .system, primaryAction: action)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.configuration = configuration
+        button.contentHorizontalAlignment = .leading
+        return button
+    }
+
+    func configureOverlayUI() {
+        view.addSubview(headerGlassView)
+        view.addSubview(footerGlassView)
+
+        let headerStack = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
+        headerStack.translatesAutoresizingMaskIntoConstraints = false
+        headerStack.axis = .vertical
+        headerStack.spacing = 6
+        headerGlassView.contentView.addSubview(headerStack)
+
+        let actionsStack = UIStackView(arrangedSubviews: [weChatShortcutButton, alipayShortcutButton])
+        actionsStack.translatesAutoresizingMaskIntoConstraints = false
+        actionsStack.axis = .vertical
+        actionsStack.spacing = 12
+
+        let footerStack = UIStackView(arrangedSubviews: [actionsStack, footerHintLabel])
+        footerStack.translatesAutoresizingMaskIntoConstraints = false
+        footerStack.axis = .vertical
+        footerStack.spacing = 14
+        footerGlassView.contentView.addSubview(footerStack)
+
+        NSLayoutConstraint.activate([
+            headerGlassView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 14),
+            headerGlassView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            headerGlassView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+            headerStack.topAnchor.constraint(equalTo: headerGlassView.contentView.topAnchor, constant: 16),
+            headerStack.leadingAnchor.constraint(equalTo: headerGlassView.contentView.leadingAnchor, constant: 18),
+            headerStack.trailingAnchor.constraint(equalTo: headerGlassView.contentView.trailingAnchor, constant: -18),
+            headerStack.bottomAnchor.constraint(equalTo: headerGlassView.contentView.bottomAnchor, constant: -16),
+
+            footerGlassView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            footerGlassView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            footerGlassView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+
+            footerStack.topAnchor.constraint(equalTo: footerGlassView.contentView.topAnchor, constant: 16),
+            footerStack.leadingAnchor.constraint(equalTo: footerGlassView.contentView.leadingAnchor, constant: 16),
+            footerStack.trailingAnchor.constraint(equalTo: footerGlassView.contentView.trailingAnchor, constant: -16),
+            footerStack.bottomAnchor.constraint(equalTo: footerGlassView.contentView.bottomAnchor, constant: -16),
+
+            weChatShortcutButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 68),
+            alipayShortcutButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 68)
+        ])
+    }
+}
+
 // MARK: - Capture Session
 
 private extension ScanViewController {
@@ -155,7 +328,7 @@ private extension ScanViewController {
 
     func configureCaptureSession() {
         captureSession.beginConfiguration()
-        captureSession.sessionPreset = .high
+        captureSession.sessionPreset = .hd1280x720
         defer { captureSession.commitConfiguration() }
 
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
@@ -166,6 +339,7 @@ private extension ScanViewController {
         }
 
         captureDevice = device
+        configureDeviceForLowerThermals(device)
 
         do {
             let input = try AVCaptureDeviceInput(device: device)
@@ -183,7 +357,6 @@ private extension ScanViewController {
             return
         }
 
-        let metadataOutput = AVCaptureMetadataOutput()
         guard captureSession.canAddOutput(metadataOutput) else {
             DispatchQueue.main.async { [weak self] in
                 self?.showSimpleAlert(title: "扫码初始化失败", message: "无法添加二维码识别输出。")
@@ -192,7 +365,7 @@ private extension ScanViewController {
         }
 
         captureSession.addOutput(metadataOutput)
-        metadataOutput.setMetadataObjectsDelegate(self, queue: .main)
+        metadataOutput.setMetadataObjectsDelegate(self, queue: metadataOutputQueue)
 
         if metadataOutput.availableMetadataObjectTypes.contains(.qr) {
             metadataOutput.metadataObjectTypes = [.qr]
@@ -200,6 +373,32 @@ private extension ScanViewController {
             DispatchQueue.main.async { [weak self] in
                 self?.showSimpleAlert(title: "扫码不可用", message: "当前设备不支持二维码识别。")
             }
+        }
+    }
+
+    func configureDeviceForLowerThermals(_ device: AVCaptureDevice) {
+        do {
+            try device.lockForConfiguration()
+            defer { device.unlockForConfiguration() }
+
+            if device.isAutoFocusRangeRestrictionSupported {
+                device.autoFocusRangeRestriction = .near
+            }
+
+            if device.isSmoothAutoFocusSupported {
+                device.isSmoothAutoFocusEnabled = true
+            }
+
+            let preferredFrameRate = 24.0
+            let preferredFrameDuration = CMTime(value: 1, timescale: 24)
+            if device.activeFormat.videoSupportedFrameRateRanges.contains(where: {
+                $0.minFrameRate <= preferredFrameRate && preferredFrameRate <= $0.maxFrameRate
+            }) {
+                device.activeVideoMinFrameDuration = preferredFrameDuration
+                device.activeVideoMaxFrameDuration = preferredFrameDuration
+            }
+        } catch {
+            print("Failed to configure capture device: \(error)")
         }
     }
 
@@ -234,10 +433,20 @@ private extension ScanViewController {
     }
 
     func resumeScanningAfterResultHandling() {
-        scanState = .idle
+        resetScanState()
         hideQRCodeBorder()
         startScanningIfPossible()
         hapticFeedback.prepare()
+    }
+
+    func beginManualRouting() {
+        stateLock.lock()
+        scanState = .handlingResult
+        lastHandledTimestamp = CACurrentMediaTime()
+        stateLock.unlock()
+
+        hideQRCodeBorder()
+        pauseScanningForResultHandling()
     }
 
     func updatePreviewOrientation() {
@@ -256,6 +465,13 @@ private extension ScanViewController {
             connection.videoOrientation = .portrait
         }
     }
+
+    func updateRectOfInterest() {
+        guard let previewLayer else { return }
+
+        let focusRect = view.bounds.insetBy(dx: view.bounds.width * 0.12, dy: view.bounds.height * 0.22)
+        metadataOutput.rectOfInterest = previewLayer.metadataOutputRectConverted(fromLayerRect: focusRect)
+    }
 }
 
 // MARK: - Metadata Output
@@ -267,26 +483,29 @@ extension ScanViewController: AVCaptureMetadataOutputObjectsDelegate {
         didOutput metadataObjects: [AVMetadataObject],
         from connection: AVCaptureConnection
     ) {
-        guard scanState == .idle else { return }
         guard
             let metadataObject = metadataObjects.first(where: { $0.type == .qr }) as? AVMetadataMachineReadableCodeObject,
-            let qrCodeString = metadataObject.stringValue
+            let qrCodeString = metadataObject.stringValue,
+            markScanHandlingBegan(for: qrCodeString)
         else {
             return
         }
 
-        scanState = .handlingResult
-        pauseScanningForResultHandling()
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
 
-        // transformedMetadataObject(for:) 会把 AVFoundation 识别到的二维码坐标，
-        // 转换成 AVCaptureVideoPreviewLayer 当前显示坐标系中的位置。
-        // 这里使用转换后的对象绘制绿色边框，保证边框与预览画面中的二维码位置一致。
-        if let transformedObject = previewLayer?.transformedMetadataObject(for: metadataObject) {
-            showQRCodeBorder(around: transformedObject.bounds)
+            self.pauseScanningForResultHandling()
+
+            // transformedMetadataObject(for:) 会把 AVFoundation 识别到的二维码坐标，
+            // 转换成 AVCaptureVideoPreviewLayer 当前显示坐标系中的位置。
+            // 这里使用转换后的对象绘制绿色边框，保证边框与预览画面中的二维码位置一致。
+            if let transformedObject = self.previewLayer?.transformedMetadataObject(for: metadataObject) {
+                self.showQRCodeBorder(around: transformedObject.bounds)
+            }
+
+            self.hapticFeedback.impactOccurred()
+            self.handleScannedQRCodeString(qrCodeString)
         }
-
-        hapticFeedback.impactOccurred()
-        handleScannedQRCodeString(qrCodeString)
     }
 }
 
@@ -295,7 +514,7 @@ extension ScanViewController: AVCaptureMetadataOutputObjectsDelegate {
 private extension ScanViewController {
 
     func showQRCodeBorder(around bounds: CGRect) {
-        let path = UIBezierPath(roundedRect: bounds.insetBy(dx: -4, dy: -4), cornerRadius: 8)
+        let path = UIBezierPath(roundedRect: bounds.insetBy(dx: -4, dy: -4), cornerRadius: 10)
         qrCodeBorderLayer.path = path.cgPath
 
         let fadeIn = CABasicAnimation(keyPath: "opacity")
@@ -341,9 +560,11 @@ private extension ScanViewController {
         switch gesture.state {
         case .began:
             initialZoomFactor = device.videoZoomFactor
+            lastAppliedZoomFactor = device.videoZoomFactor
 
         case .changed:
             let requestedZoomFactor = initialZoomFactor * gesture.scale
+            guard abs(requestedZoomFactor - lastAppliedZoomFactor) > 0.02 else { return }
             setVideoZoomFactor(requestedZoomFactor, on: device)
 
         default:
@@ -361,6 +582,7 @@ private extension ScanViewController {
             let maxZoomFactor = min(device.activeFormat.videoMaxZoomFactor, 6)
             let clampedZoomFactor = min(max(zoomFactor, 1), maxZoomFactor)
             device.videoZoomFactor = clampedZoomFactor
+            lastAppliedZoomFactor = clampedZoomFactor
         } catch {
             print("Failed to set video zoom factor: \(error)")
         }
@@ -374,7 +596,7 @@ private extension ScanViewController {
     func handleScannedQRCodeString(_ qrCodeString: String) {
         switch route(for: qrCodeString) {
         case .weChat:
-            openWeChat(for: qrCodeString)
+            openWeChatPayload(qrCodeString)
 
         case .alipay:
             openAlipayQRCode(qrCodeString)
@@ -384,7 +606,7 @@ private extension ScanViewController {
         }
     }
 
-    private func route(for qrCodeString: String) -> PaymentRoute {
+    func route(for qrCodeString: String) -> PaymentRoute {
         let lowercasedString = qrCodeString.lowercased()
 
         if isWeChatQRCode(lowercasedString) {
@@ -419,14 +641,14 @@ private extension ScanViewController {
             preferredStyle: .actionSheet
         )
 
-        // 聚合支付码无法仅靠本 App 判断最终收款方。
-        // 用户选择“微信支付”后，这里只负责拉起微信/微信扫一扫，让微信自行继续处理。
-        alert.addAction(UIAlertAction(title: "微信支付", style: .default) { [weak self] _ in
-            self?.openWeChat(for: qrCodeString)
+        // 通用二维码或聚合支付码无法只靠当前 App 准确判断收款方。
+        // 用户选择“微信扫一扫”后，这里会直接拉起微信扫一扫，不再追加任何二次确认弹窗。
+        alert.addAction(UIAlertAction(title: "微信扫一扫", style: .default) { [weak self] _ in
+            self?.openWeChatScanner()
         })
 
         // 用户选择“支付宝支付”后，将原始聚合码作为 qrcode 参数交给支付宝。
-        // 支付宝客户端会解析 qrcode 中的真实业务地址，并进入对应支付流程。
+        // 支付宝客户端会继续解析二维码内容，并进入对应业务页面。
         alert.addAction(UIAlertAction(title: "支付宝支付", style: .default) { [weak self] _ in
             self?.openAlipayQRCode(qrCodeString)
         })
@@ -449,36 +671,58 @@ private extension ScanViewController {
         present(alert, animated: true)
     }
 
-    func openWeChat(for qrCodeString: String) {
+    func openWeChatPayload(_ qrCodeString: String) {
         // 微信二维码的业务形态很多：
         // - weixin.qq.com 可能是微信网页/业务二维码；
         // - wxp://、weixin:// 这类内容更接近微信私有 Scheme；
-        // - 聚合支付码选择微信支付时，通常需要拉起微信或微信扫一扫继续处理。
+        // - 微信专有码通常更适合优先交给微信自身处理。
         //
-        // iOS 不允许第三方 App 直接控制微信完成扫一扫后的支付链路。
         // 因此这里按“尽最大努力”策略：
         // 1. 如果二维码本身就是微信可打开的私有 Scheme，优先打开原始内容；
         // 2. 否则尝试打开微信扫一扫 Scheme；
         // 3. 再退回到 weixin:// 拉起微信首页。
-        //
-        // 注意：如果原始二维码是 https://weixin.qq.com/...，
-        // 不要把它作为第一个候选 URL，否则系统可能会直接用 Safari 打开网页，
-        // 这与“尝试拉起微信”的业务目标不一致。
         var candidates: [URL] = []
         if let originalURL = URL(string: qrCodeString),
            let scheme = originalURL.scheme?.lowercased(),
            ["weixin", "wxp", "wechat"].contains(scheme) {
             candidates.append(originalURL)
         }
-        candidates.append(contentsOf: [
-            URL(string: "weixin://scanqrcode"),
-            URL(string: "weixin://")
-        ].compactMap { $0 })
+
+        candidates.append(contentsOf: weChatScannerCandidates())
 
         openFirstAvailableURL(
             candidates,
             failureTitle: "无法打开微信",
             failureMessage: "请确认已安装微信，并在 Info.plist 中配置 weixin / wechat / wxp 白名单。"
+        )
+    }
+
+    func openWeChatScanner() {
+        beginManualRouting()
+        openFirstAvailableURL(
+            weChatScannerCandidates(),
+            failureTitle: "无法打开微信扫一扫",
+            failureMessage: "请确认已安装微信，并在 Info.plist 中配置 weixin / wechat / wxp 白名单。"
+        )
+    }
+
+    func weChatScannerCandidates() -> [URL] {
+        [
+            URL(string: "weixin://scanqrcode"),
+            URL(string: "weixin://")
+        ].compactMap { $0 }
+    }
+
+    func openAlipayScanner() {
+        let scannerURLs = [
+            URL(string: "alipayqr://platformapi/startapp?saId=10000007"),
+            URL(string: "alipays://platformapi/startapp?appId=10000007")
+        ].compactMap { $0 }
+
+        openFirstAvailableURL(
+            scannerURLs,
+            failureTitle: "无法打开支付宝扫码",
+            failureMessage: "请确认已安装支付宝，并在 Info.plist 中配置 alipayqr / alipays 白名单。"
         )
     }
 
@@ -539,14 +783,16 @@ private extension ScanViewController {
         }
 
         // canOpenURL 需要 Info.plist 的 LSApplicationQueriesSchemes 白名单配合。
-        // 如果没有配置白名单，canOpenURL 会返回 false，即使用户手机里已经安装对应 App。
+        // 如果没有配置白名单，canOpenURL 会返回 false，即使手机已经安装对应 App。
         if UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url, options: [:]) { [weak self] success in
                 DispatchQueue.main.async {
+                    guard let self else { return }
+
                     if success {
-                        self?.resumeScanningAfterResultHandling()
+                        self.hideQRCodeBorder()
                     } else {
-                        self?.openFirstAvailableURL(
+                        self.openFirstAvailableURL(
                             Array(urls.dropFirst()),
                             failureTitle: failureTitle,
                             failureMessage: failureMessage
@@ -571,5 +817,27 @@ private extension ScanViewController {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "确定", style: .default))
         present(alert, animated: true)
+    }
+
+    func markScanHandlingBegan(for payload: String) -> Bool {
+        stateLock.lock()
+        defer { stateLock.unlock() }
+
+        let now = CACurrentMediaTime()
+        let duplicateCooldown: CFTimeInterval = 1.25
+
+        guard scanState == .idle else { return false }
+        guard payload != lastHandledPayload || now - lastHandledTimestamp > duplicateCooldown else { return false }
+
+        scanState = .handlingResult
+        lastHandledPayload = payload
+        lastHandledTimestamp = now
+        return true
+    }
+
+    func resetScanState() {
+        stateLock.lock()
+        defer { stateLock.unlock() }
+        scanState = .idle
     }
 }

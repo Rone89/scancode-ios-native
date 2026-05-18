@@ -12,18 +12,20 @@ permissions:
 jobs:
   build:
     name: Build unsigned IPA
-    runs-on: macos-latest
+    runs-on: macos-26
 
     env:
       APP_NAME: ScanCode
-      RELEASE_BASE_VERSION: "1.0"
+      RELEASE_BASE_VERSION: "2.0"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Show Xcode version
-        run: xcodebuild -version
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer
+          xcodebuild -version
 
       - name: Build app
         run: |
@@ -65,16 +67,21 @@ jobs:
           cat > RELEASE_NOTES.md <<EOF
           # ScanCode v${VERSION}
 
-          本版本由 GitHub Actions 自动构建并上传。
+          本版本由 GitHub Actions 在 macOS 26 / Xcode 26 环境中自动构建并上传。
 
           ## 功能说明
 
           - 使用系统原生 AVFoundation 实现二维码扫描。
+          - 使用 iOS 26 原生 Liquid Glass 风格界面与系统组件。
           - 使用 AVCaptureVideoPreviewLayer 展示原生相机预览。
           - 识别成功时，通过 transformedMetadataObject(for:) 定位二维码并绘制绿色边框反馈。
           - 识别成功后触发 UIImpactFeedbackGenerator(style: .medium) 硬件震动反馈。
           - 支持双指捏合缩放，通过 AVCaptureDevice.videoZoomFactor 调节相机焦距。
+          - 通用二维码选择微信后，直接拉起微信扫一扫，不再追加确认步骤。
           - 支持微信、支付宝和通用聚合支付二维码分发逻辑。
+          - 支持多尺寸小组件，提供扫码页、微信扫一扫、支付宝扫码快捷入口。
+          - 内置新的应用图标资源。
+          - 通过会话分辨率、识别区域、重复码冷却与帧率限制优化发热表现。
 
           ## 安装说明
 

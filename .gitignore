@@ -13,3 +13,5 @@ xcuserdata/
 # CI artifacts
 Payload/
 *.ipa
+run-*-logs/
+run-*-logs.zip
