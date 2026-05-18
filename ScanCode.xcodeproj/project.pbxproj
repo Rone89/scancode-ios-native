@@ -14,9 +14,12 @@
 		13A1A0052C00000100000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13A1A0162C00000100000001 /* Assets.xcassets */; };
 		13A1A0062C00000100000001 /* ScanAppAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A0172C00000100000001 /* ScanAppAction.swift */; };
 		13A1A0072C00000100000001 /* ScanCodeWidgetsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A01A2C00000100000001 /* ScanCodeWidgetsBundle.swift */; };
-		13A1A0082C00000100000001 /* ScanCodeQuickActionsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A01B2C00000100000001 /* ScanCodeQuickActionsWidget.swift */; };
+		13A1A0082C00000100000001 /* ScanWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A01B2C00000100000001 /* ScanWidget.swift */; };
 		13A1A0092C00000100000001 /* ScanAppAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A0172C00000100000001 /* ScanAppAction.swift */; };
 		13A1A00A2C00000100000001 /* ScanCodeWidgetsExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 13A1A0192C00000100000001 /* ScanCodeWidgetsExtension.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		13A1A00B2C00000100000001 /* ScanLiveActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A01D2C00000100000001 /* ScanLiveActivityAttributes.swift */; };
+		13A1A00C2C00000100000001 /* ScanLiveActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A01D2C00000100000001 /* ScanLiveActivityAttributes.swift */; };
+		13A1A00D2C00000100000001 /* ScanCodeLiveActivityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A1A01E2C00000100000001 /* ScanCodeLiveActivityWidget.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,11 +55,12 @@
 		13A1A0152C00000100000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		13A1A0162C00000100000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		13A1A0172C00000100000001 /* ScanAppAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanAppAction.swift; sourceTree = "<group>"; };
-		13A1A0182C00000100000001 /* ScanCodeWidgets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ScanCodeWidgets; sourceTree = "<group>"; };
 		13A1A0192C00000100000001 /* ScanCodeWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ScanCodeWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		13A1A01A2C00000100000001 /* ScanCodeWidgetsBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanCodeWidgetsBundle.swift; sourceTree = "<group>"; };
-		13A1A01B2C00000100000001 /* ScanCodeQuickActionsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanCodeQuickActionsWidget.swift; sourceTree = "<group>"; };
+		13A1A01B2C00000100000001 /* ScanWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanWidget.swift; sourceTree = "<group>"; };
 		13A1A01C2C00000100000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		13A1A01D2C00000100000001 /* ScanLiveActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanLiveActivityAttributes.swift; sourceTree = "<group>"; };
+		13A1A01E2C00000100000001 /* ScanCodeLiveActivityWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanCodeLiveActivityWidget.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				13A1A0172C00000100000001 /* ScanAppAction.swift */,
+				13A1A01D2C00000100000001 /* ScanLiveActivityAttributes.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -112,7 +117,8 @@
 			isa = PBXGroup;
 			children = (
 				13A1A01A2C00000100000001 /* ScanCodeWidgetsBundle.swift */,
-				13A1A01B2C00000100000001 /* ScanCodeQuickActionsWidget.swift */,
+				13A1A01B2C00000100000001 /* ScanWidget.swift */,
+				13A1A01E2C00000100000001 /* ScanCodeLiveActivityWidget.swift */,
 				13A1A01C2C00000100000001 /* Info.plist */,
 			);
 			path = ScanCodeWidgets;
@@ -229,6 +235,7 @@
 			files = (
 				13A1A0012C00000100000001 /* AppDelegate.swift in Sources */,
 				13A1A0062C00000100000001 /* ScanAppAction.swift in Sources */,
+				13A1A00B2C00000100000001 /* ScanLiveActivityAttributes.swift in Sources */,
 				13A1A0022C00000100000001 /* SceneDelegate.swift in Sources */,
 				13A1A0032C00000100000001 /* ScanViewController.swift in Sources */,
 			);
@@ -239,7 +246,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				13A1A0092C00000100000001 /* ScanAppAction.swift in Sources */,
-				13A1A0082C00000100000001 /* ScanCodeQuickActionsWidget.swift in Sources */,
+				13A1A00C2C00000100000001 /* ScanLiveActivityAttributes.swift in Sources */,
+				13A1A0082C00000100000001 /* ScanWidget.swift in Sources */,
+				13A1A00D2C00000100000001 /* ScanCodeLiveActivityWidget.swift in Sources */,
 				13A1A0072C00000100000001 /* ScanCodeWidgetsBundle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

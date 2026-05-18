@@ -1,7 +1,7 @@
 import Foundation
 
-enum ScanAppAction: String, CaseIterable, Sendable {
-    case scanner = "scanner"
+enum ScanAppAction: String, CaseIterable, Sendable, Codable, Hashable {
+    case scanner = "startscan"
     case weChatScanner = "wechat-scanner"
     case alipayScanner = "alipay-scanner"
 
@@ -18,11 +18,25 @@ enum ScanAppAction: String, CaseIterable, Sendable {
             }()
 
         guard let token else { return nil }
-        self.init(rawValue: token)
+
+        switch token {
+        case Self.scanner.rawValue, "scanner":
+            self = .scanner
+        case Self.weChatScanner.rawValue:
+            self = .weChatScanner
+        case Self.alipayScanner.rawValue:
+            self = .alipayScanner
+        default:
+            return nil
+        }
     }
 
     var url: URL {
         URL(string: "\(Self.scheme)://\(rawValue)")!
+    }
+
+    var widgetDeepLink: String {
+        url.absoluteString
     }
 
     var title: String {

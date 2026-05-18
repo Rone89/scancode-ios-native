@@ -40,9 +40,12 @@
 		<string>weixin</string>
 		<string>wxp</string>
 		<string>wechat</string>
+		<string>alipay</string>
 		<string>alipayqr</string>
 		<string>alipays</string>
 	</array>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -65,7 +68,7 @@
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>arm64</string>
-		<string>camera-flash</string>
+		<string>camera</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
