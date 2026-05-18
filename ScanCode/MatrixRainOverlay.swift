@@ -231,4 +231,8 @@ private extension MatrixRainOverlayView {
             )
         }
     }
+
+    func numberValues(_ values: [Double]) -> [NSNumber] {
+        values.map { NSNumber(value: $0) }
+    }
 }
