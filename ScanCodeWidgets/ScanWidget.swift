@@ -657,56 +657,12 @@ private struct PaymentQuickWidgetView: View {
             }
         }
         .containerBackground(for: .widget) {
-            Color.clear
+            PaymentQuickGlassBackground()
         }
     }
 
     private var background: some View {
-        RoundedRectangle(cornerRadius: 30, style: .continuous)
-            .fill(.ultraThinMaterial)
-            .opacity(0.72)
-            .overlay {
-                RoundedRectangle(cornerRadius: 30, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                .white.opacity(0.24),
-                                .white.opacity(0.07),
-                                .white.opacity(0.02)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-            }
-            .overlay(alignment: .topLeading) {
-                RoundedRectangle(cornerRadius: 30, style: .continuous)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                .white.opacity(0.72),
-                                .white.opacity(0.18),
-                                .clear
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-            }
-            .overlay(alignment: .bottomTrailing) {
-                RoundedRectangle(cornerRadius: 30, style: .continuous)
-                    .stroke(.white.opacity(0.20), lineWidth: 0.8)
-                    .blur(radius: 0.4)
-            }
-            .overlay(alignment: .top) {
-                Capsule()
-                    .fill(.white.opacity(0.30))
-                    .frame(width: 86, height: 1.2)
-                    .padding(.top, 8)
-                    .blur(radius: 0.2)
-            }
-            .glassEffect(.regular.tint(.white.opacity(0.14)), in: .rect(cornerRadius: 30))
+        PaymentQuickGlassBackground()
     }
 }
 
@@ -761,6 +717,42 @@ private struct PaymentQuickIcon: View {
         }
         .foregroundStyle(action.foregroundColor)
         .accessibilityHidden(true)
+    }
+}
+
+private struct PaymentQuickGlassBackground: View {
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 30, style: .continuous)
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.10, green: 0.12, blue: 0.16).opacity(0.66),
+                        Color(red: 0.18, green: 0.20, blue: 0.25).opacity(0.50),
+                        Color(red: 0.07, green: 0.08, blue: 0.11).opacity(0.64)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: 30, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(0.20),
+                                .white.opacity(0.06),
+                                .clear
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 30, style: .continuous)
+                    .stroke(.white.opacity(0.28), lineWidth: 1)
+            }
     }
 }
 
@@ -1012,17 +1004,16 @@ private struct ShortcutGridButton: View {
         .padding(.vertical, 6)
         .background {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.black.opacity(0.10))
+                .fill(Color(red: 0.10, green: 0.12, blue: 0.16).opacity(0.50))
                 .overlay {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(.white.opacity(0.08))
+                        .fill(.white.opacity(0.10))
                 }
                 .overlay {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .stroke(.white.opacity(0.14), lineWidth: 1)
                 }
         }
-        .glassEffect(.regular.tint(.white.opacity(0.05)), in: .rect(cornerRadius: 18))
         .contentShape(.rect(cornerRadius: 18))
     }
 }
@@ -1031,12 +1022,17 @@ private struct ShortcutGridGlassBackground: View {
 
     var body: some View {
         RoundedRectangle(cornerRadius: 30, style: .continuous)
-            .fill(.ultraThinMaterial)
-            .opacity(0.74)
-            .background {
-                RoundedRectangle(cornerRadius: 30, style: .continuous)
-                    .fill(.black.opacity(0.18))
-            }
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.10, green: 0.12, blue: 0.16).opacity(0.68),
+                        Color(red: 0.18, green: 0.20, blue: 0.26).opacity(0.52),
+                        Color(red: 0.07, green: 0.08, blue: 0.11).opacity(0.66)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
             .overlay {
                 RoundedRectangle(cornerRadius: 30, style: .continuous)
                     .fill(
@@ -1066,6 +1062,5 @@ private struct ShortcutGridGlassBackground: View {
                         lineWidth: 1
                     )
             }
-            .glassEffect(.regular.tint(.white.opacity(0.12)), in: .rect(cornerRadius: 30))
     }
 }
