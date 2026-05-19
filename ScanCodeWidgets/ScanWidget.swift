@@ -775,7 +775,7 @@ struct ShortcutGridWidget: Widget {
         }
         .configurationDisplayName("快捷指令面板")
         .description("添加四个自定义快捷指令入口。")
-        .supportedFamilies([.systemSmall])
+        .supportedFamilies([.systemSmall, .systemMedium])
         .contentMarginsDisabled()
     }
 }
@@ -927,11 +927,11 @@ private enum ShortcutGridSlot: CaseIterable {
         }
     }
 
-    func shortcutURL(from configuration: ShortcutGridConfigurationIntent) -> URL {
+    func shortcutDeepLinkURL(from configuration: ShortcutGridConfigurationIntent) -> URL {
         let shortcutName = shortcutName(from: configuration)
         let allowedCharacters = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
         let encodedName = shortcutName.addingPercentEncoding(withAllowedCharacters: allowedCharacters) ?? shortcutName
-        return URL(string: "shortcuts://run-shortcut?name=\(encodedName)")!
+        return URL(string: "\(ScanAppAction.scheme)://shortcut?name=\(encodedName)")!
     }
 }
 
@@ -954,7 +954,7 @@ private struct ShortcutGridWidgetView: View {
 
                 LazyVGrid(columns: columns, spacing: gridSpacing) {
                     ForEach(ShortcutGridSlot.allCases, id: \.self) { slot in
-                        Link(destination: slot.shortcutURL(from: entry.configuration)) {
+                        Link(destination: slot.shortcutDeepLinkURL(from: entry.configuration)) {
                             ShortcutGridButton(
                                 title: slot.shortcutName(from: entry.configuration),
                                 symbolName: slot.symbolName,
@@ -969,7 +969,7 @@ private struct ShortcutGridWidgetView: View {
             }
         }
         .containerBackground(for: .widget) {
-            Color.clear
+            ShortcutGridGlassBackground()
         }
     }
 }
@@ -1012,7 +1012,11 @@ private struct ShortcutGridButton: View {
         .padding(.vertical, 6)
         .background {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.white.opacity(0.10))
+                .fill(.black.opacity(0.10))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(.white.opacity(0.08))
+                }
                 .overlay {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .stroke(.white.opacity(0.14), lineWidth: 1)
@@ -1029,14 +1033,18 @@ private struct ShortcutGridGlassBackground: View {
         RoundedRectangle(cornerRadius: 30, style: .continuous)
             .fill(.ultraThinMaterial)
             .opacity(0.74)
+            .background {
+                RoundedRectangle(cornerRadius: 30, style: .continuous)
+                    .fill(.black.opacity(0.18))
+            }
             .overlay {
                 RoundedRectangle(cornerRadius: 30, style: .continuous)
                     .fill(
                         LinearGradient(
                             colors: [
-                                .white.opacity(0.26),
-                                .white.opacity(0.07),
-                                .white.opacity(0.02)
+                                .white.opacity(0.22),
+                                .white.opacity(0.06),
+                                .black.opacity(0.08)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing

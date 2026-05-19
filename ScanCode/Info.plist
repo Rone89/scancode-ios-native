@@ -43,6 +43,7 @@
 		<string>alipay</string>
 		<string>alipayqr</string>
 		<string>alipays</string>
+		<string>shortcuts</string>
 	</array>
 	<key>NSSupportsLiveActivities</key>
 	<true/>

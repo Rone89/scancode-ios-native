@@ -42,10 +42,41 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 private extension SceneDelegate {
 
     func handleDeepLink(_ url: URL) {
+        if handleShortcutDeepLink(url) {
+            return
+        }
+
         guard let action = ScanAppAction(url: url) else { return }
 
         navigationController.popToRootViewController(animated: false)
         scanViewController.handleExternalAction(action)
+    }
+
+    func handleShortcutDeepLink(_ url: URL) -> Bool {
+        guard
+            url.scheme?.lowercased() == ScanAppAction.scheme,
+            url.host?.lowercased() == "shortcut",
+            let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+            let shortcutName = components.queryItems?.first(where: { $0.name == "name" })?.value,
+            let shortcutURL = shortcutRunURL(for: shortcutName)
+        else {
+            return false
+        }
+
+        UIApplication.shared.open(shortcutURL)
+        return true
+    }
+
+    func shortcutRunURL(for shortcutName: String) -> URL? {
+        let trimmedName = shortcutName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return nil }
+
+        let allowedCharacters = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
+        guard let encodedName = trimmedName.addingPercentEncoding(withAllowedCharacters: allowedCharacters) else {
+            return nil
+        }
+
+        return URL(string: "shortcuts://run-shortcut?name=\(encodedName)")
     }
 
     func installMatrixRainOverlay() {
