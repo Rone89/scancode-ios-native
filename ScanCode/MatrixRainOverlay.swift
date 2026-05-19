@@ -3,67 +3,48 @@ import UIKit
 
 final class MatrixRainOverlayView: UIView {
 
-    private enum Edge {
-        case top
-        case right
-        case bottom
-        case left
-    }
-
-    private let topLayer = CAEmitterLayer()
-    private let rightLayer = CAEmitterLayer()
-    private let bottomLayer = CAEmitterLayer()
-    private let leftLayer = CAEmitterLayer()
-    private let topLeftCornerLayer = CAEmitterLayer()
-    private let topRightCornerLayer = CAEmitterLayer()
-    private let bottomLeftCornerLayer = CAEmitterLayer()
-    private let bottomRightCornerLayer = CAEmitterLayer()
-    private let edgeMaskLayer = CAShapeLayer()
-    private let vignetteLayer = CAGradientLayer()
-    private let symbols = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ#$%&*+-=<>")
-
-    private var emitterLayers: [CAEmitterLayer] {
-        [
-            topLayer,
-            rightLayer,
-            bottomLayer,
-            leftLayer,
-            topLeftCornerLayer,
-            topRightCornerLayer,
-            bottomLeftCornerLayer,
-            bottomRightCornerLayer
-        ]
-    }
-
-    private var reduceMotion: Bool {
-        UIAccessibility.isReduceMotionEnabled
-    }
+    private let renderer = MatrixRainRenderer()
+    private var displayLink: CADisplayLink?
+    private var lastFrameTimestamp: CFTimeInterval?
+    private var reduceMotion = UIAccessibility.isReduceMotionEnabled
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         configureView()
-        configureVignetteLayer()
-        configureEmitterLayers()
-        installReduceMotionObserver()
-        updateMotionState()
+        installObservers()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         configureView()
-        configureVignetteLayer()
-        configureEmitterLayers()
-        installReduceMotionObserver()
-        updateMotionState()
+        installObservers()
     }
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+        stopDisplayLink()
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+
+        if window == nil {
+            stopDisplayLink()
+        } else {
+            renderer.updateLayout(for: bounds, reduceMotion: reduceMotion)
+            startDisplayLink()
+        }
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        updateLayerFrames()
+        renderer.updateLayout(for: bounds, reduceMotion: reduceMotion)
+        setNeedsDisplay()
+    }
+
+    override func draw(_ rect: CGRect) {
+        guard let context = UIGraphicsGetCurrentContext(), !bounds.isEmpty else { return }
+        renderer.draw(in: context, bounds: bounds, reduceMotion: reduceMotion)
     }
 
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
@@ -78,288 +59,583 @@ private extension MatrixRainOverlayView {
         isOpaque = false
         isUserInteractionEnabled = false
         accessibilityElementsHidden = true
-        clipsToBounds = true
-        layer.mask = edgeMaskLayer
+        clearsContextBeforeDrawing = true
+        contentMode = .redraw
     }
 
-    func configureVignetteLayer() {
-        vignetteLayer.colors = [
-            UIColor.black.withAlphaComponent(0.20).cgColor,
-            UIColor.clear.cgColor,
-            UIColor.clear.cgColor,
-            UIColor.black.withAlphaComponent(0.12).cgColor
-        ]
-        vignetteLayer.locations = numberValues([0, 0.12, 0.84, 1])
-        vignetteLayer.startPoint = CGPoint(x: 0.5, y: 0)
-        vignetteLayer.endPoint = CGPoint(x: 0.5, y: 1)
-        vignetteLayer.isOpaque = false
-        layer.addSublayer(vignetteLayer)
-    }
-
-    func configureEmitterLayers() {
-        configureEmitterLayer(topLayer)
-        configureEmitterLayer(rightLayer)
-        configureEmitterLayer(bottomLayer)
-        configureEmitterLayer(leftLayer)
-        configureEmitterLayer(topLeftCornerLayer)
-        configureEmitterLayer(topRightCornerLayer)
-        configureEmitterLayer(bottomLeftCornerLayer)
-        configureEmitterLayer(bottomRightCornerLayer)
-
-        topLayer.emitterCells = makeEdgeCells(edge: .top, major: true)
-        rightLayer.emitterCells = makeEdgeCells(edge: .right, major: false)
-        bottomLayer.emitterCells = makeEdgeCells(edge: .bottom, major: true)
-        leftLayer.emitterCells = makeEdgeCells(edge: .left, major: false)
-        topLeftCornerLayer.emitterCells = makeCornerCells(phase: 0)
-        topRightCornerLayer.emitterCells = makeCornerCells(phase: 1)
-        bottomLeftCornerLayer.emitterCells = makeCornerCells(phase: 2)
-        bottomRightCornerLayer.emitterCells = makeCornerCells(phase: 3)
-
-        emitterLayers.forEach { layer.addSublayer($0) }
-    }
-
-    func configureEmitterLayer(_ emitterLayer: CAEmitterLayer) {
-        emitterLayer.emitterMode = .surface
-        emitterLayer.renderMode = .oldestLast
-        emitterLayer.preservesDepth = false
-        emitterLayer.masksToBounds = false
-        emitterLayer.backgroundColor = UIColor.clear.cgColor
-        emitterLayer.isOpaque = false
-    }
-
-    func installReduceMotionObserver() {
+    func installObservers() {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleReduceMotionStatusChanged),
             name: UIAccessibility.reduceMotionStatusDidChangeNotification,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleApplicationDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleApplicationWillResignActive),
+            name: UIApplication.willResignActiveNotification,
+            object: nil
+        )
+    }
+
+    func startDisplayLink() {
+        guard displayLink == nil else {
+            displayLink?.isPaused = false
+            return
+        }
+
+        let link = CADisplayLink(target: self, selector: #selector(handleDisplayLink(_:)))
+        link.preferredFramesPerSecond = reduceMotion ? 10 : 24
+        link.add(to: .main, forMode: .common)
+        displayLink = link
+    }
+
+    func stopDisplayLink() {
+        displayLink?.invalidate()
+        displayLink = nil
+        lastFrameTimestamp = nil
+    }
+
+    @objc func handleDisplayLink(_ link: CADisplayLink) {
+        defer {
+            lastFrameTimestamp = link.timestamp
+        }
+
+        guard !bounds.isEmpty else { return }
+
+        let deltaTime: TimeInterval
+        if let lastFrameTimestamp {
+            deltaTime = min(max(link.timestamp - lastFrameTimestamp, 0), 1.0 / 12.0)
+        } else {
+            deltaTime = 1.0 / Double(max(link.preferredFramesPerSecond, 1))
+        }
+
+        renderer.advance(by: CGFloat(deltaTime), reduceMotion: reduceMotion)
+        setNeedsDisplay()
     }
 
     @objc func handleReduceMotionStatusChanged() {
-        updateMotionState()
+        reduceMotion = UIAccessibility.isReduceMotionEnabled
+        displayLink?.preferredFramesPerSecond = reduceMotion ? 10 : 24
+        renderer.updateLayout(for: bounds, reduceMotion: reduceMotion)
+        setNeedsDisplay()
     }
 
-    func updateLayerFrames() {
-        let currentBounds = bounds
-        guard !currentBounds.isEmpty else { return }
-
-        let bandWidth = edgeBandWidth(for: currentBounds)
-        let cornerDiameter = max(bandWidth * 2.2, 92)
-
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-
-        vignetteLayer.frame = currentBounds
-        edgeMaskLayer.frame = currentBounds
-        edgeMaskLayer.path = edgeMaskPath(bounds: currentBounds, bandWidth: bandWidth).cgPath
-        edgeMaskLayer.fillRule = .evenOdd
-
-        topLayer.frame = currentBounds
-        topLayer.emitterShape = .rectangle
-        topLayer.emitterPosition = CGPoint(x: currentBounds.midX, y: bandWidth / 2)
-        topLayer.emitterSize = CGSize(width: currentBounds.width, height: bandWidth)
-
-        bottomLayer.frame = currentBounds
-        bottomLayer.emitterShape = .rectangle
-        bottomLayer.emitterPosition = CGPoint(x: currentBounds.midX, y: currentBounds.maxY - bandWidth / 2)
-        bottomLayer.emitterSize = CGSize(width: currentBounds.width, height: bandWidth)
-
-        leftLayer.frame = currentBounds
-        leftLayer.emitterShape = .rectangle
-        leftLayer.emitterPosition = CGPoint(x: bandWidth / 2, y: currentBounds.midY)
-        leftLayer.emitterSize = CGSize(width: bandWidth, height: currentBounds.height)
-
-        rightLayer.frame = currentBounds
-        rightLayer.emitterShape = .rectangle
-        rightLayer.emitterPosition = CGPoint(x: currentBounds.maxX - bandWidth / 2, y: currentBounds.midY)
-        rightLayer.emitterSize = CGSize(width: bandWidth, height: currentBounds.height)
-
-        updateCornerLayer(topLeftCornerLayer, position: CGPoint(x: bandWidth / 2, y: bandWidth / 2), size: cornerDiameter)
-        updateCornerLayer(
-            topRightCornerLayer,
-            position: CGPoint(x: currentBounds.maxX - bandWidth / 2, y: bandWidth / 2),
-            size: cornerDiameter
-        )
-        updateCornerLayer(
-            bottomLeftCornerLayer,
-            position: CGPoint(x: bandWidth / 2, y: currentBounds.maxY - bandWidth / 2),
-            size: cornerDiameter
-        )
-        updateCornerLayer(
-            bottomRightCornerLayer,
-            position: CGPoint(x: currentBounds.maxX - bandWidth / 2, y: currentBounds.maxY - bandWidth / 2),
-            size: cornerDiameter
-        )
-
-        CATransaction.commit()
+    @objc func handleApplicationDidBecomeActive() {
+        displayLink?.isPaused = false
     }
 
-    func updateMotionState() {
-        if reduceMotion {
-            topLayer.birthRate = 0.18
-            rightLayer.birthRate = 0.14
-            bottomLayer.birthRate = 0.18
-            leftLayer.birthRate = 0.14
-            topLeftCornerLayer.birthRate = 0.06
-            topRightCornerLayer.birthRate = 0.06
-            bottomLeftCornerLayer.birthRate = 0.06
-            bottomRightCornerLayer.birthRate = 0.06
-            emitterLayers.forEach { $0.speed = 0.18 }
-            vignetteLayer.opacity = 0.58
+    @objc func handleApplicationWillResignActive() {
+        displayLink?.isPaused = true
+    }
+}
+
+private final class MatrixRainRenderer {
+
+    private enum Edge: Equatable {
+        case top
+        case right
+        case bottom
+        case left
+    }
+
+    private enum Corner: Equatable {
+        case topLeft
+        case topRight
+        case bottomLeft
+        case bottomRight
+    }
+
+    private enum StreamKind {
+        case edge(Edge)
+        case corner(Corner)
+
+        func matches(_ edge: Edge) -> Bool {
+            if case let .edge(candidate) = self {
+                return candidate == edge
+            }
+            return false
+        }
+
+        func matches(_ corner: Corner) -> Bool {
+            if case let .corner(candidate) = self {
+                return candidate == corner
+            }
+            return false
+        }
+    }
+
+    private struct RainStream {
+        let kind: StreamKind
+        let crossOffset: CGFloat
+        let depthOffset: CGFloat
+        let glyphSize: CGFloat
+        let glyphSpacing: CGFloat
+        let glyphCount: Int
+        let speed: CGFloat
+        let resetOffset: CGFloat
+        let wobble: CGFloat
+        let phase: CGFloat
+        var head: CGFloat
+        var glyphs: [String]
+        var shuffleCountdown: CGFloat
+    }
+
+    private let symbols = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ#$%&*+-=<>")
+    private var streams: [RainStream] = []
+    private var layoutSignature = ""
+    private var bandWidth: CGFloat = 58
+    private var cornerSize: CGFloat = 92
+    private var baseFont: UIFont = .monospacedSystemFont(ofSize: 14, weight: .semibold)
+    private var headFont: UIFont = .monospacedSystemFont(ofSize: 15, weight: .heavy)
+
+    func updateLayout(for bounds: CGRect, reduceMotion: Bool) {
+        guard !bounds.isEmpty else {
+            streams.removeAll()
+            layoutSignature = ""
+            return
+        }
+
+        let newBandWidth = edgeBandWidth(for: bounds)
+        let newCornerSize = min(max(newBandWidth * 1.55, 88), 124)
+        let newGlyphSize = glyphSize(for: bounds)
+        let signature = [
+            Int(bounds.width.rounded()),
+            Int(bounds.height.rounded()),
+            Int(newBandWidth.rounded()),
+            Int(newCornerSize.rounded()),
+            Int(newGlyphSize.rounded()),
+            reduceMotion ? 1 : 0
+        ]
+        .map(String.init)
+        .joined(separator: "-")
+
+        guard signature != layoutSignature else { return }
+
+        bandWidth = newBandWidth
+        cornerSize = newCornerSize
+        baseFont = .monospacedSystemFont(ofSize: newGlyphSize, weight: .semibold)
+        headFont = .monospacedSystemFont(ofSize: newGlyphSize + 1.5, weight: .heavy)
+        layoutSignature = signature
+        rebuildStreams(for: bounds, glyphSize: newGlyphSize, reduceMotion: reduceMotion)
+    }
+
+    func advance(by deltaTime: CGFloat, reduceMotion: Bool) {
+        guard !streams.isEmpty else { return }
+
+        let motionScale: CGFloat = reduceMotion ? 0.10 : 1.0
+
+        for index in streams.indices {
+            streams[index].head += streams[index].speed * deltaTime * motionScale
+            streams[index].shuffleCountdown -= deltaTime
+
+            if streams[index].head > streams[index].resetOffset {
+                resetStream(at: index)
+            } else if streams[index].shuffleCountdown <= 0 {
+                shuffleGlyphs(at: index, headOnly: reduceMotion)
+            }
+        }
+    }
+
+    func draw(in context: CGContext, bounds: CGRect, reduceMotion: Bool) {
+        context.saveGState()
+        drawEdgeVeil(in: context, bounds: bounds)
+
+        for edge in [Edge.top, .right, .bottom, .left] {
+            context.saveGState()
+            context.clip(to: rect(for: edge, bounds: bounds))
+            drawStreams(
+                streams.lazy.filter { $0.kind.matches(edge) },
+                in: context,
+                bounds: bounds,
+                reduceMotion: reduceMotion
+            )
+            context.restoreGState()
+        }
+
+        for corner in [Corner.topLeft, .topRight, .bottomLeft, .bottomRight] {
+            context.saveGState()
+            context.clip(to: rect(for: corner, bounds: bounds))
+            drawStreams(
+                streams.lazy.filter { $0.kind.matches(corner) },
+                in: context,
+                bounds: bounds,
+                reduceMotion: reduceMotion
+            )
+            context.restoreGState()
+        }
+
+        context.restoreGState()
+    }
+}
+
+private extension MatrixRainRenderer {
+
+    private func rebuildStreams(for bounds: CGRect, glyphSize: CGFloat, reduceMotion: Bool) {
+        streams.removeAll()
+
+        let edgeSpacing = glyphSize * 2.45
+        let tailCount = reduceMotion ? 3 : 6
+        let speedScale: CGFloat = reduceMotion ? 0.52 : 1.0
+
+        for edge in [Edge.top, .bottom] {
+            let trackCount = max(12, Int(ceil(bounds.width / edgeSpacing)))
+            let length = bandWidth + glyphSize * CGFloat(tailCount + 2)
+            appendEdgeStreams(
+                edge: edge,
+                trackCount: trackCount,
+                crossLength: bounds.width,
+                depthCount: 2,
+                glyphSize: glyphSize,
+                tailCount: tailCount,
+                movementLength: length,
+                speedScale: speedScale
+            )
+        }
+
+        for edge in [Edge.left, .right] {
+            let trackCount = max(18, Int(ceil(bounds.height / edgeSpacing)))
+            let length = bandWidth + glyphSize * CGFloat(tailCount + 2)
+            appendEdgeStreams(
+                edge: edge,
+                trackCount: trackCount,
+                crossLength: bounds.height,
+                depthCount: 2,
+                glyphSize: glyphSize,
+                tailCount: tailCount,
+                movementLength: length,
+                speedScale: speedScale
+            )
+        }
+
+        for corner in [Corner.topLeft, .topRight, .bottomLeft, .bottomRight] {
+            appendCornerStreams(
+                corner: corner,
+                trackCount: max(7, Int(ceil(cornerSize / (glyphSize * 1.42)))),
+                glyphSize: glyphSize,
+                tailCount: max(4, tailCount - 1),
+                movementLength: cornerSize + glyphSize * CGFloat(tailCount + 2),
+                speedScale: speedScale
+            )
+        }
+    }
+
+    private func appendEdgeStreams(
+        edge: Edge,
+        trackCount: Int,
+        crossLength: CGFloat,
+        depthCount: Int,
+        glyphSize: CGFloat,
+        tailCount: Int,
+        movementLength: CGFloat,
+        speedScale: CGFloat
+    ) {
+        let edgeInset = glyphSize * 0.45
+        let usableCrossLength = max(crossLength - edgeInset * 2, glyphSize)
+
+        for track in 0..<trackCount {
+            let crossRatio = trackCount > 1 ? CGFloat(track) / CGFloat(trackCount - 1) : 0.5
+            let crossOffset = edgeInset + usableCrossLength * crossRatio + CGFloat.random(in: -2...2)
+
+            for depth in 0..<depthCount {
+                guard depth == 0 || Double.random(in: 0...1) > 0.34 else { continue }
+
+                let depthOffset = CGFloat(depth) * glyphSize * 0.94 + CGFloat.random(in: 0...(glyphSize * 0.28))
+                let speed = CGFloat.random(in: 22...46) * speedScale
+                let glyphCount = max(3, tailCount - depth / 2)
+                let start = CGFloat.random(in: -movementLength...0)
+                let stream = makeStream(
+                    kind: .edge(edge),
+                    crossOffset: crossOffset,
+                    depthOffset: depthOffset,
+                    glyphSize: glyphSize,
+                    glyphCount: glyphCount,
+                    speed: speed,
+                    resetOffset: movementLength,
+                    start: start
+                )
+                streams.append(stream)
+            }
+        }
+    }
+
+    private func appendCornerStreams(
+        corner: Corner,
+        trackCount: Int,
+        glyphSize: CGFloat,
+        tailCount: Int,
+        movementLength: CGFloat,
+        speedScale: CGFloat
+    ) {
+        let usableSize = cornerSize - glyphSize
+
+        for track in 0..<trackCount {
+            let ratio = trackCount > 1 ? CGFloat(track) / CGFloat(trackCount - 1) : 0.5
+            let crossOffset = glyphSize * 0.45 + usableSize * ratio + CGFloat.random(in: -2...2)
+            let speed = CGFloat.random(in: 18...39) * speedScale
+            let stream = makeStream(
+                kind: .corner(corner),
+                crossOffset: crossOffset,
+                depthOffset: CGFloat.random(in: 0...(glyphSize * 0.7)),
+                glyphSize: glyphSize,
+                glyphCount: tailCount,
+                speed: speed,
+                resetOffset: movementLength,
+                start: CGFloat.random(in: -movementLength...0)
+            )
+            streams.append(stream)
+        }
+    }
+
+    private func makeStream(
+        kind: StreamKind,
+        crossOffset: CGFloat,
+        depthOffset: CGFloat,
+        glyphSize: CGFloat,
+        glyphCount: Int,
+        speed: CGFloat,
+        resetOffset: CGFloat,
+        start: CGFloat
+    ) -> RainStream {
+        RainStream(
+            kind: kind,
+            crossOffset: crossOffset,
+            depthOffset: depthOffset,
+            glyphSize: glyphSize,
+            glyphSpacing: glyphSize * CGFloat.random(in: 1.05...1.32),
+            glyphCount: glyphCount,
+            speed: speed,
+            resetOffset: resetOffset,
+            wobble: CGFloat.random(in: 0.6...2.2),
+            phase: CGFloat.random(in: 0...(.pi * 2)),
+            head: start,
+            glyphs: makeGlyphs(count: glyphCount),
+            shuffleCountdown: CGFloat.random(in: 0.12...0.42)
+        )
+    }
+
+    private func resetStream(at index: Int) {
+        streams[index].head = CGFloat.random(in: -(streams[index].resetOffset * 0.72)...0)
+        streams[index].glyphs = makeGlyphs(count: streams[index].glyphCount)
+        streams[index].shuffleCountdown = CGFloat.random(in: 0.12...0.44)
+    }
+
+    private func shuffleGlyphs(at index: Int, headOnly: Bool) {
+        if headOnly {
+            streams[index].glyphs[0] = randomGlyph()
         } else {
-            topLayer.birthRate = 1.0
-            rightLayer.birthRate = 0.82
-            bottomLayer.birthRate = 0.92
-            leftLayer.birthRate = 0.82
-            topLeftCornerLayer.birthRate = 0.36
-            topRightCornerLayer.birthRate = 0.36
-            bottomLeftCornerLayer.birthRate = 0.36
-            bottomRightCornerLayer.birthRate = 0.36
-            emitterLayers.forEach { $0.speed = 1 }
-            vignetteLayer.opacity = 1
+            for glyphIndex in streams[index].glyphs.indices {
+                guard glyphIndex == 0 || Double.random(in: 0...1) > 0.42 else { continue }
+                streams[index].glyphs[glyphIndex] = randomGlyph()
+            }
+        }
+
+        streams[index].shuffleCountdown = CGFloat.random(in: 0.12...0.44)
+    }
+
+    private func drawStreams<VisibleStreams: Sequence>(
+        _ visibleStreams: VisibleStreams,
+        in context: CGContext,
+        bounds: CGRect,
+        reduceMotion: Bool
+    ) where VisibleStreams.Element == RainStream {
+        for stream in visibleStreams {
+            for index in 0..<stream.glyphCount {
+                let distance = stream.head - CGFloat(index) * stream.glyphSpacing
+                guard distance > -stream.glyphSpacing else { continue }
+
+                let alpha = alpha(forGlyphAt: index, count: stream.glyphCount, reduceMotion: reduceMotion)
+                guard alpha > 0.01 else { continue }
+
+                let point = glyphPoint(
+                    for: stream,
+                    distance: distance,
+                    bounds: bounds
+                )
+                drawGlyph(stream.glyphs[index], at: point, index: index, alpha: alpha, reduceMotion: reduceMotion)
+            }
         }
     }
 
-    func makeEdgeCells(edge: Edge, major: Bool) -> [CAEmitterCell] {
-        symbols.enumerated().compactMap { index, symbol in
-            guard major ? index % 2 == 0 : index % 3 == 0 else { return nil }
+    private func glyphPoint(for stream: RainStream, distance: CGFloat, bounds: CGRect) -> CGPoint {
+        let wobble = sin((distance / 18) + stream.phase) * stream.wobble
 
-            let bright = index % 11 == 0
-            let cell = matrixCell(
-                symbol: symbol,
-                fontSize: bright ? 18 : 15,
-                color: bright
-                    ? UIColor(red: 0.76, green: 1.00, blue: 0.78, alpha: 0.42)
-                    : UIColor(red: 0.20, green: 1.00, blue: 0.38, alpha: major ? 0.22 : 0.18),
-                birthRate: bright ? 0.48 : (major ? 1.9 : 1.35),
-                lifetime: major ? 4.8 : 4.3,
-                velocity: bright ? 52 : 38,
-                velocityRange: 26,
-                scale: bright ? 0.90 : 0.82,
-                scaleRange: 0.18,
-                alphaSpeed: bright ? -0.10 : -0.060,
-                emissionLongitude: emissionLongitude(for: edge)
+        switch stream.kind {
+        case .edge(.top):
+            return CGPoint(
+                x: stream.crossOffset + wobble,
+                y: stream.depthOffset + distance
             )
-            cell.beginTime = CFTimeInterval(index) * 0.022
-            return cell
-        }
-    }
-
-    func updateCornerLayer(_ emitterLayer: CAEmitterLayer, position: CGPoint, size: CGFloat) {
-        emitterLayer.frame = bounds
-        emitterLayer.emitterShape = .rectangle
-        emitterLayer.emitterPosition = position
-        emitterLayer.emitterSize = CGSize(width: size, height: size)
-    }
-
-    func makeCornerCells(phase: Int) -> [CAEmitterCell] {
-        symbols.enumerated().compactMap { index, symbol in
-            guard index % 4 == 0 else { return nil }
-
-            let cell = matrixCell(
-                symbol: symbol,
-                fontSize: 14,
-                color: UIColor(red: 0.28, green: 1.00, blue: 0.42, alpha: 0.16),
-                birthRate: 0.58,
-                lifetime: 3.8,
-                velocity: 34,
-                velocityRange: 30,
-                scale: 0.78,
-                scaleRange: 0.22,
-                alphaSpeed: -0.075,
-                emissionLongitude: CGFloat((index + phase * 2) % 8) * .pi / 4
+        case .edge(.bottom):
+            return CGPoint(
+                x: stream.crossOffset + wobble,
+                y: bounds.height - stream.depthOffset - distance - stream.glyphSize
             )
-            cell.emissionRange = .pi * 2
-            cell.beginTime = CFTimeInterval(index + phase) * 0.030
-            return cell
+        case .edge(.left):
+            return CGPoint(
+                x: stream.depthOffset + distance,
+                y: stream.crossOffset + wobble
+            )
+        case .edge(.right):
+            return CGPoint(
+                x: bounds.width - stream.depthOffset - distance - stream.glyphSize,
+                y: stream.crossOffset + wobble
+            )
+        case .corner(.topLeft):
+            return CGPoint(
+                x: stream.crossOffset * 0.42 + distance * 0.54 + wobble,
+                y: stream.depthOffset + distance * 0.72
+            )
+        case .corner(.topRight):
+            return CGPoint(
+                x: bounds.width - stream.crossOffset * 0.42 - distance * 0.54 - stream.glyphSize - wobble,
+                y: stream.depthOffset + distance * 0.72
+            )
+        case .corner(.bottomLeft):
+            return CGPoint(
+                x: stream.crossOffset * 0.42 + distance * 0.54 + wobble,
+                y: bounds.height - stream.depthOffset - distance * 0.72 - stream.glyphSize
+            )
+        case .corner(.bottomRight):
+            return CGPoint(
+                x: bounds.width - stream.crossOffset * 0.42 - distance * 0.54 - stream.glyphSize - wobble,
+                y: bounds.height - stream.depthOffset - distance * 0.72 - stream.glyphSize
+            )
         }
     }
 
-    func matrixCell(
-        symbol: Character,
-        fontSize: CGFloat,
-        color: UIColor,
-        birthRate: Float,
-        lifetime: Float,
-        velocity: CGFloat,
-        velocityRange: CGFloat,
-        scale: CGFloat,
-        scaleRange: CGFloat,
-        alphaSpeed: Float,
-        emissionLongitude: CGFloat
-    ) -> CAEmitterCell {
-        let cell = CAEmitterCell()
-        cell.contents = glyphImage(for: String(symbol), fontSize: fontSize, color: color).cgImage
-        cell.birthRate = birthRate
-        cell.lifetime = lifetime
-        cell.lifetimeRange = lifetime * 0.30
-        cell.velocity = velocity
-        cell.velocityRange = velocityRange
-        cell.emissionLongitude = emissionLongitude
-        cell.emissionRange = 0.34
-        cell.yAcceleration = 0
-        cell.xAcceleration = 0
-        cell.spin = 0
-        cell.spinRange = 0
-        cell.scale = scale
-        cell.scaleRange = scaleRange
-        cell.alphaSpeed = alphaSpeed
-        cell.alphaRange = 0.08
-        return cell
-    }
-
-    func emissionLongitude(for edge: Edge) -> CGFloat {
-        switch edge {
-        case .top:
-            return .pi / 2
-        case .right:
-            return .pi
-        case .bottom:
-            return -.pi / 2
-        case .left:
-            return 0
-        }
-    }
-
-    func edgeBandWidth(for bounds: CGRect) -> CGFloat {
-        min(max(min(bounds.width, bounds.height) * 0.13, 44), 68)
-    }
-
-    func edgeMaskPath(bounds: CGRect, bandWidth: CGFloat) -> UIBezierPath {
-        let outerPath = UIBezierPath(rect: bounds)
-        let innerRect = bounds.insetBy(dx: bandWidth, dy: bandWidth)
-        let innerCornerRadius = max(24, min(bounds.width, bounds.height) * 0.08)
-        let innerPath = UIBezierPath(roundedRect: innerRect, cornerRadius: innerCornerRadius)
-
-        outerPath.append(innerPath)
-        return outerPath
-    }
-
-    func glyphImage(for text: String, fontSize: CGFloat, color: UIColor) -> UIImage {
-        let font = UIFont.monospacedSystemFont(ofSize: fontSize, weight: .semibold)
+    private func drawGlyph(
+        _ glyph: String,
+        at point: CGPoint,
+        index: Int,
+        alpha: CGFloat,
+        reduceMotion: Bool
+    ) {
+        let isHead = index == 0
+        let color = isHead
+            ? UIColor(red: 0.78, green: 1.00, blue: 0.78, alpha: reduceMotion ? alpha * 0.55 : alpha)
+            : UIColor(red: 0.13, green: 1.00, blue: 0.30, alpha: reduceMotion ? alpha * 0.45 : alpha)
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: font,
+            .font: isHead ? headFont : baseFont,
             .foregroundColor: color
         ]
-        let measuredSize = text.size(withAttributes: attributes)
-        let imageSize = CGSize(
-            width: ceil(measuredSize.width + 4),
-            height: ceil(measuredSize.height + 4)
-        )
-        let renderer = UIGraphicsImageRenderer(size: imageSize)
 
-        return renderer.image { context in
-            UIColor.clear.setFill()
-            context.fill(CGRect(origin: .zero, size: imageSize))
-            text.draw(
-                at: CGPoint(x: 2, y: 2),
-                withAttributes: attributes
+        if isHead, !reduceMotion {
+            let glowAttributes: [NSAttributedString.Key: Any] = [
+                .font: headFont,
+                .foregroundColor: UIColor(red: 0.38, green: 1.00, blue: 0.45, alpha: alpha * 0.24)
+            ]
+            glyph.draw(at: CGPoint(x: point.x - 0.8, y: point.y - 0.8), withAttributes: glowAttributes)
+            glyph.draw(at: CGPoint(x: point.x + 0.8, y: point.y + 0.8), withAttributes: glowAttributes)
+        }
+
+        glyph.draw(at: point, withAttributes: attributes)
+    }
+
+    private func drawEdgeVeil(in context: CGContext, bounds: CGRect) {
+        context.saveGState()
+
+        let topGradient = CGGradient(
+            colorsSpace: CGColorSpaceCreateDeviceRGB(),
+            colors: [
+                UIColor.black.withAlphaComponent(0.14).cgColor,
+                UIColor.black.withAlphaComponent(0.00).cgColor
+            ] as CFArray,
+            locations: [0, 1]
+        )
+        let sideGradient = CGGradient(
+            colorsSpace: CGColorSpaceCreateDeviceRGB(),
+            colors: [
+                UIColor.black.withAlphaComponent(0.09).cgColor,
+                UIColor.black.withAlphaComponent(0.00).cgColor
+            ] as CFArray,
+            locations: [0, 1]
+        )
+
+        if let topGradient {
+            context.drawLinearGradient(
+                topGradient,
+                start: CGPoint(x: bounds.midX, y: 0),
+                end: CGPoint(x: bounds.midX, y: bandWidth),
+                options: []
             )
+            context.drawLinearGradient(
+                topGradient,
+                start: CGPoint(x: bounds.midX, y: bounds.maxY),
+                end: CGPoint(x: bounds.midX, y: bounds.maxY - bandWidth),
+                options: []
+            )
+        }
+
+        if let sideGradient {
+            context.drawLinearGradient(
+                sideGradient,
+                start: CGPoint(x: 0, y: bounds.midY),
+                end: CGPoint(x: bandWidth, y: bounds.midY),
+                options: []
+            )
+            context.drawLinearGradient(
+                sideGradient,
+                start: CGPoint(x: bounds.maxX, y: bounds.midY),
+                end: CGPoint(x: bounds.maxX - bandWidth, y: bounds.midY),
+                options: []
+            )
+        }
+
+        context.restoreGState()
+    }
+
+    private func alpha(forGlyphAt index: Int, count: Int, reduceMotion: Bool) -> CGFloat {
+        let trailProgress = CGFloat(index) / CGFloat(max(count - 1, 1))
+        let base = index == 0 ? CGFloat(0.58) : max(0.07, 0.34 * pow(1 - trailProgress, 1.45))
+        return reduceMotion ? min(base, 0.16) : base
+    }
+
+    private func rect(for edge: Edge, bounds: CGRect) -> CGRect {
+        switch edge {
+        case .top:
+            return CGRect(x: 0, y: 0, width: bounds.width, height: bandWidth)
+        case .right:
+            return CGRect(x: bounds.width - bandWidth, y: 0, width: bandWidth, height: bounds.height)
+        case .bottom:
+            return CGRect(x: 0, y: bounds.height - bandWidth, width: bounds.width, height: bandWidth)
+        case .left:
+            return CGRect(x: 0, y: 0, width: bandWidth, height: bounds.height)
         }
     }
 
-    func numberValues(_ values: [Double]) -> [NSNumber] {
-        values.map { NSNumber(value: $0) }
+    private func rect(for corner: Corner, bounds: CGRect) -> CGRect {
+        switch corner {
+        case .topLeft:
+            return CGRect(x: 0, y: 0, width: cornerSize, height: cornerSize)
+        case .topRight:
+            return CGRect(x: bounds.width - cornerSize, y: 0, width: cornerSize, height: cornerSize)
+        case .bottomLeft:
+            return CGRect(x: 0, y: bounds.height - cornerSize, width: cornerSize, height: cornerSize)
+        case .bottomRight:
+            return CGRect(x: bounds.width - cornerSize, y: bounds.height - cornerSize, width: cornerSize, height: cornerSize)
+        }
+    }
+
+    private func edgeBandWidth(for bounds: CGRect) -> CGFloat {
+        min(max(min(bounds.width, bounds.height) * 0.145, 52), 86)
+    }
+
+    private func glyphSize(for bounds: CGRect) -> CGFloat {
+        min(max(min(bounds.width, bounds.height) * 0.031, 11.5), 15.5)
+    }
+
+    private func makeGlyphs(count: Int) -> [String] {
+        (0..<count).map { _ in randomGlyph() }
+    }
+
+    private func randomGlyph() -> String {
+        String(symbols.randomElement() ?? "0")
     }
 }

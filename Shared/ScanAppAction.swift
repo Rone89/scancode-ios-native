@@ -10,12 +10,18 @@ enum ScanAppAction: String, CaseIterable, Sendable, Codable, Hashable {
     init?(url: URL) {
         guard url.scheme?.lowercased() == Self.scheme else { return nil }
 
-        let token = url.host?.lowercased()
-            ?? url.pathComponents.dropFirst().first?.lowercased()
-            ?? {
-                let lastPathComponent = url.lastPathComponent.lowercased()
-                return lastPathComponent.isEmpty ? nil : lastPathComponent
-            }()
+        let hostToken = url.host?.lowercased()
+        let pathToken = url.pathComponents.dropFirst().first?.lowercased()
+        let lastPathComponent = url.lastPathComponent.lowercased()
+        let fallbackToken = lastPathComponent.isEmpty ? nil : lastPathComponent
+        let token: String?
+        if let hostToken {
+            token = hostToken
+        } else if let pathToken {
+            token = pathToken
+        } else {
+            token = fallbackToken
+        }
 
         guard let token else { return nil }
 
