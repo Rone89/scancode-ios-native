@@ -48,7 +48,7 @@ enum ScanAppAction: String, CaseIterable, Sendable, Codable, Hashable {
     var title: String {
         switch self {
         case .scanner:
-            return "打开扫码"
+            return "扫码"
         case .weChatScanner:
             return "微信扫一扫"
         case .alipayScanner:
@@ -59,11 +59,11 @@ enum ScanAppAction: String, CaseIterable, Sendable, Codable, Hashable {
     var subtitle: String {
         switch self {
         case .scanner:
-            return "回到原生扫码页"
+            return "识别二维码和聚合码"
         case .weChatScanner:
-            return "直达微信扫一扫"
+            return "启动微信扫码入口"
         case .alipayScanner:
-            return "直达支付宝扫码"
+            return "启动支付宝扫码入口"
         }
     }
 

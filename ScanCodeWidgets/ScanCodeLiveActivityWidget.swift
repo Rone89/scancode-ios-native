@@ -5,23 +5,28 @@ import WidgetKit
 struct ScanCodeLiveActivityWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: ScanLiveActivityAttributes.self) { context in
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 10) {
                     appIconImage
-                        .frame(width: 32, height: 32)
-                        .clipShape(.rect(cornerRadius: 8))
+                        .frame(width: 34, height: 34)
+                        .clipShape(.rect(cornerRadius: 9))
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(context.state.title)
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.system(size: 16, weight: .heavy))
                             .foregroundStyle(.white)
+                            .lineLimit(1)
+
                         Text(context.state.subtitle)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.82))
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.72))
+                            .lineLimit(1)
                     }
+
+                    Spacer(minLength: 0)
                 }
 
-                HStack(spacing: 10) {
+                HStack(spacing: 8) {
                     liveActivityChip(title: "扫码", action: .scanner, isPrimary: context.state.action == .scanner)
                     liveActivityChip(title: "微信", action: .weChatScanner, isPrimary: context.state.action == .weChatScanner)
                     liveActivityChip(title: "支付宝", action: .alipayScanner, isPrimary: context.state.action == .alipayScanner)
@@ -43,10 +48,11 @@ struct ScanCodeLiveActivityWidget: Widget {
                     Text(context.state.title)
                         .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(.white)
+                        .lineLimit(1)
                 }
 
                 DynamicIslandExpandedRegion(.bottom) {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 8) {
                         liveActivityChip(title: "扫码", action: .scanner, isPrimary: context.state.action == .scanner)
                         liveActivityChip(title: "微信", action: .weChatScanner, isPrimary: context.state.action == .weChatScanner)
                         liveActivityChip(title: "支付宝", action: .alipayScanner, isPrimary: context.state.action == .alipayScanner)
@@ -57,7 +63,7 @@ struct ScanCodeLiveActivityWidget: Widget {
                     .frame(width: 20, height: 20)
                     .clipShape(.rect(cornerRadius: 5))
             } compactTrailing: {
-                Text("扫")
+                Image(systemName: "qrcode.viewfinder")
                     .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(.white)
             } minimal: {
@@ -69,37 +75,57 @@ struct ScanCodeLiveActivityWidget: Widget {
             .keylineTint(.cyan)
         }
     }
+}
 
-    private func liveActivityChip(title: String, action: ScanAppAction, isPrimary: Bool) -> some View {
+private extension ScanCodeLiveActivityWidget {
+
+    func liveActivityChip(title: String, action: ScanAppAction, isPrimary: Bool) -> some View {
         Link(destination: action.url) {
-            Text(title)
-                .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+            HStack(spacing: 6) {
+                Image(systemName: action.symbolName)
+                    .font(.system(size: 11, weight: .bold))
+
+                Text(title)
+                    .font(.system(size: 12, weight: .bold))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
         }
         .buttonStyle(.plain)
         .glassEffect(
-            isPrimary ? .regular.tint(.white.opacity(0.10)).interactive() : .regular.interactive(),
+            isPrimary ? .regular.tint(.white.opacity(0.12)).interactive() : .regular.tint(.white.opacity(0.05)).interactive(),
             in: .capsule
         )
     }
 
-    private var appIconImage: some View {
+    var appIconImage: some View {
         Image("ScanCodeIcon")
             .resizable()
             .scaledToFit()
     }
 
-    private var liveActivityBackground: some View {
+    var liveActivityBackground: some View {
         LinearGradient(
             colors: [
-                Color(red: 0.09, green: 0.16, blue: 0.30),
-                Color(red: 0.10, green: 0.31, blue: 0.44),
-                Color(red: 0.15, green: 0.18, blue: 0.34)
+                Color(red: 0.05, green: 0.08, blue: 0.12),
+                Color(red: 0.07, green: 0.25, blue: 0.27),
+                Color(red: 0.18, green: 0.14, blue: 0.32)
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [.white.opacity(0.14), .clear],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .frame(height: 42)
+        }
     }
 }
