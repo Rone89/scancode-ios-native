@@ -1,19 +1,18 @@
 # ScanCode
 
-ScanCode is a native iOS 26 QR scanner app built with UIKit, WidgetKit, and AVFoundation.
+ScanCode is a native iOS 26 QR scanner app built with UIKit and AVFoundation.
 
 ## Features
 
 - Native QR scanning with `AVCaptureSession` and `AVCaptureMetadataOutput`.
 - Camera preview through `AVCaptureVideoPreviewLayer`.
-- Scanner-only interface with the camera preview as the only primary surface.
+- Scanner-only interface with the camera preview as the primary surface.
 - QR success border using `transformedMetadataObject(for:)`.
 - Medium haptic feedback on successful recognition.
 - Pinch zoom by updating `AVCaptureDevice.videoZoomFactor`.
 - Lower thermal load through a full-screen scan region, lower-cost session preset, throttled duplicate handling, automatic stop on success/background, and camera frame-rate limiting.
 - Routing for WeChat QR codes, Alipay QR codes, and generic or aggregate QR codes with a minimal WeChat / Alipay chooser.
-- Home screen, Lock Screen, and Dynamic Island surfaces for scanner, WeChat scan, and Alipay scan entry points.
-- App icon and widget scanner icon use the bundled blue and black QR artwork in `Assets.xcassets`.
+- Edge-only Matrix-style digital rain overlay in the main app.
 
 ## Permissions
 
@@ -38,7 +37,7 @@ It also includes URL scheme query allowlist entries for WeChat and Alipay:
 </array>
 ```
 
-And the app registers its own deep link scheme for widgets:
+The app keeps its `scancode` URL scheme for direct scanner entry points:
 
 ```xml
 <key>CFBundleURLTypes</key>
@@ -56,24 +55,7 @@ And the app registers its own deep link scheme for widgets:
 
 - WeChat-related QR codes open WeChat Scan directly without confirmation.
 - Alipay-related QR codes are percent-encoded and passed to `alipayqr://platformapi/startapp?saId=10000007&qrcode=`.
-- Generic or aggregate QR codes show only a system action sheet with `微信`, `支付宝`, and `取消`.
-
-## Widgets
-
-The widget extension supports:
-
-- `systemSmall`
-- `systemMedium`
-- `systemLarge`
-- `accessoryInline`
-- `accessoryCircular`
-- `accessoryRectangular`
-
-Each widget can deep-link into one of the app actions:
-
-- `scancode://startscan`
-- `scancode://wechat-scanner`
-- `scancode://alipay-scanner`
+- Generic or aggregate QR codes show only a system action sheet with WeChat, Alipay, and Cancel.
 
 ## CI Release
 

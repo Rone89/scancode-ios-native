@@ -104,12 +104,6 @@ final class ScanViewController: UIViewController {
             openWeChatScanner()
         case .alipayScanner:
             openAlipayScanner()
-        case .openAlipay:
-            openAlipayApp()
-        case .weChatPayCode:
-            openWeChatPayCode()
-        case .alipayPayCode:
-            openAlipayPayCode()
         }
     }
 }
@@ -615,57 +609,6 @@ private extension ScanViewController {
             failureTitle: "无法打开支付宝扫码",
             failureMessage: "请确认已安装支付宝，并在 Info.plist 中配置 alipayqr / alipays 白名单。"
         )
-    }
-
-    func openAlipayApp() {
-        beginManualRouting()
-
-        openFirstAvailableURL(
-            alipayAppCandidates(),
-            failureTitle: "无法打开支付宝",
-            failureMessage: "请确认已安装支付宝，并在 Info.plist 中配置 alipays / alipay 白名单。"
-        )
-    }
-
-    func alipayAppCandidates() -> [URL] {
-        [
-            URL(string: "alipays://"),
-            URL(string: "alipay://")
-        ].compactMap { $0 }
-    }
-
-    func openWeChatPayCode() {
-        beginManualRouting()
-
-        openFirstAvailableURL(
-            weChatPayCodeCandidates(),
-            failureTitle: "无法打开微信付款码",
-            failureMessage: "请确认已安装微信，并在 Info.plist 中配置 weixin 白名单。"
-        )
-    }
-
-    func weChatPayCodeCandidates() -> [URL] {
-        [
-            URL(string: "weixin://widget/pay"),
-            URL(string: "weixin://")
-        ].compactMap { $0 }
-    }
-
-    func openAlipayPayCode() {
-        beginManualRouting()
-
-        openFirstAvailableURL(
-            alipayPayCodeCandidates(),
-            failureTitle: "无法打开支付宝付款码",
-            failureMessage: "请确认已安装支付宝，并在 Info.plist 中配置 alipays / alipayqr 白名单。"
-        )
-    }
-
-    func alipayPayCodeCandidates() -> [URL] {
-        [
-            URL(string: "alipays://platformapi/startapp?appId=20000056"),
-            URL(string: "alipayqr://platformapi/startapp?saId=20000056")
-        ].compactMap { $0 }
     }
 
     func openAlipayQRCode(_ qrCodeString: String) {
