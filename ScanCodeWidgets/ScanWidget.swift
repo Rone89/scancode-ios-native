@@ -566,24 +566,24 @@ private enum PaymentQuickAction: String, CaseIterable {
         case .app:
             return ScanAppAction.scanner.url
         case .alipay:
-            return ScanAppAction.openAlipay.url
+            return URL(string: "alipays://")!
         case .weChatPayCode:
-            return ScanAppAction.weChatPayCode.url
+            return URL(string: "weixin://widget/pay")!
         case .alipayPayCode:
-            return ScanAppAction.alipayPayCode.url
+            return URL(string: "alipays://platformapi/startapp?appId=20000056")!
         }
     }
 
     var symbolName: String {
         switch self {
         case .app:
-            return "iphone"
+            return "qrcode.viewfinder"
         case .alipay:
-            return "a.circle"
+            return "alipay"
         case .weChatPayCode:
             return "qrcode"
         case .alipayPayCode:
-            return "barcode.viewfinder"
+            return "qrcode"
         }
     }
 
@@ -600,42 +600,25 @@ private enum PaymentQuickAction: String, CaseIterable {
         }
     }
 
-    var ringProgress: CGFloat {
+    var backgroundColor: Color {
         switch self {
         case .app:
-            return 0.88
+            return .white
         case .alipay:
-            return 0.82
+            return Color(red: 0.008, green: 0.478, blue: 1.000)
         case .weChatPayCode:
-            return 0.34
+            return Color(red: 0.035, green: 0.722, blue: 0.243)
         case .alipayPayCode:
-            return 0.28
+            return Color(red: 0.008, green: 0.478, blue: 1.000)
         }
     }
 
-    var ringRotation: Angle {
+    var foregroundColor: Color {
         switch self {
         case .app:
-            return .degrees(-92)
-        case .alipay:
-            return .degrees(-62)
-        case .weChatPayCode:
-            return .degrees(18)
-        case .alipayPayCode:
-            return .degrees(42)
-        }
-    }
-
-    var accentColor: Color {
-        switch self {
-        case .app:
-            return Color(red: 0.20, green: 0.88, blue: 0.40)
-        case .alipay:
-            return Color(red: 0.24, green: 0.90, blue: 0.44)
-        case .weChatPayCode:
-            return Color(red: 0.18, green: 0.78, blue: 0.36)
-        case .alipayPayCode:
-            return Color(red: 0.22, green: 0.82, blue: 0.40)
+            return Color(red: 0.08, green: 0.10, blue: 0.12)
+        case .alipay, .weChatPayCode, .alipayPayCode:
+            return .white
         }
     }
 }
@@ -644,17 +627,17 @@ private struct PaymentQuickWidgetView: View {
     let entry: PaymentQuickEntry
 
     private let columns = [
-        GridItem(.flexible(), spacing: 14),
-        GridItem(.flexible(), spacing: 14)
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
     ]
 
     var body: some View {
         GeometryReader { proxy in
             let shortestSide = min(proxy.size.width, proxy.size.height)
-            let side = max(48, shortestSide * 0.34)
-            let gridSpacing = max(12, shortestSide * 0.09)
-            let horizontalPadding = max(12, shortestSide * 0.08)
-            let verticalPadding = max(11, shortestSide * 0.075)
+            let side = max(46, shortestSide * 0.35)
+            let gridSpacing = max(12, shortestSide * 0.08)
+            let horizontalPadding = max(16, shortestSide * 0.11)
+            let verticalPadding = max(15, shortestSide * 0.10)
 
             ZStack {
                 background
@@ -679,29 +662,29 @@ private struct PaymentQuickWidgetView: View {
 
     private var background: some View {
         RoundedRectangle(cornerRadius: 30, style: .continuous)
-            .fill(
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.35, green: 0.43, blue: 0.35).opacity(0.54),
-                        Color(red: 0.23, green: 0.31, blue: 0.26).opacity(0.66),
-                        Color(red: 0.20, green: 0.26, blue: 0.22).opacity(0.60)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
+            .fill(.ultraThinMaterial)
+            .opacity(0.72)
             .overlay {
                 RoundedRectangle(cornerRadius: 30, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .opacity(0.34)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(0.24),
+                                .white.opacity(0.07),
+                                .white.opacity(0.02)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
             }
             .overlay(alignment: .topLeading) {
                 RoundedRectangle(cornerRadius: 30, style: .continuous)
                     .stroke(
                         LinearGradient(
                             colors: [
-                                .white.opacity(0.42),
-                                .white.opacity(0.10),
+                                .white.opacity(0.72),
+                                .white.opacity(0.18),
                                 .clear
                             ],
                             startPoint: .topLeading,
@@ -712,9 +695,17 @@ private struct PaymentQuickWidgetView: View {
             }
             .overlay(alignment: .bottomTrailing) {
                 RoundedRectangle(cornerRadius: 30, style: .continuous)
-                    .stroke(.white.opacity(0.16), lineWidth: 0.8)
+                    .stroke(.white.opacity(0.20), lineWidth: 0.8)
                     .blur(radius: 0.4)
             }
+            .overlay(alignment: .top) {
+                Capsule()
+                    .fill(.white.opacity(0.30))
+                    .frame(width: 86, height: 1.2)
+                    .padding(.top, 8)
+                    .blur(radius: 0.2)
+            }
+            .glassEffect(.regular.tint(.white.opacity(0.14)), in: .rect(cornerRadius: 30))
     }
 }
 
@@ -725,27 +716,49 @@ private struct PaymentQuickButton: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color.white.opacity(0.13), lineWidth: side * 0.11)
+                .fill(action.backgroundColor)
 
             Circle()
-                .trim(from: 0, to: action.ringProgress)
-                .stroke(
-                    action.accentColor,
-                    style: StrokeStyle(lineWidth: side * 0.11, lineCap: .round)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            .white.opacity(action == .app ? 0.34 : 0.22),
+                            .clear
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .center
+                    )
                 )
-                .rotationEffect(action.ringRotation)
-                .shadow(color: action.accentColor.opacity(0.36), radius: 4, x: 0, y: 1)
 
-            Circle()
-                .stroke(.white.opacity(0.08), lineWidth: 1)
-                .padding(side * 0.13)
-
-            Image(systemName: action.symbolName)
-                .font(.system(size: side * 0.34, weight: .semibold))
-                .foregroundStyle(.white)
-                .symbolRenderingMode(.monochrome)
+            PaymentQuickIcon(action: action, side: side)
         }
         .frame(width: side, height: side)
         .contentShape(Circle())
+        .shadow(color: .black.opacity(0.16), radius: 7, x: 0, y: 5)
+        .overlay {
+            Circle()
+                .stroke(.white.opacity(action == .app ? 0.78 : 0.28), lineWidth: 1)
+        }
+    }
+}
+
+private struct PaymentQuickIcon: View {
+    let action: PaymentQuickAction
+    let side: CGFloat
+
+    var body: some View {
+        Group {
+            if action == .alipay {
+                Text("支")
+                    .font(.system(size: side * 0.43, weight: .heavy, design: .rounded))
+                    .baselineOffset(side * 0.01)
+            } else {
+                Image(systemName: action.symbolName)
+                    .font(.system(size: side * 0.36, weight: .semibold))
+                    .symbolRenderingMode(.monochrome)
+            }
+        }
+        .foregroundStyle(action.foregroundColor)
+        .accessibilityHidden(true)
     }
 }
