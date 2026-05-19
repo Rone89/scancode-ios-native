@@ -6,6 +6,7 @@ struct ScanCodeWidgetsBundle: WidgetBundle {
     var body: some Widget {
         ScanWidget()
         PaymentQuickWidget()
+        ShortcutGridWidget()
         ScanCodeLiveActivityWidget()
     }
 }

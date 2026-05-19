@@ -1,3 +1,4 @@
+import AppIntents
 import SwiftUI
 import WidgetKit
 
@@ -760,5 +761,303 @@ private struct PaymentQuickIcon: View {
         }
         .foregroundStyle(action.foregroundColor)
         .accessibilityHidden(true)
+    }
+}
+
+struct ShortcutGridWidget: Widget {
+    var body: some WidgetConfiguration {
+        AppIntentConfiguration(
+            kind: "com.codex.scancode.shortcut-grid",
+            intent: ShortcutGridConfigurationIntent.self,
+            provider: ShortcutGridProvider()
+        ) { entry in
+            ShortcutGridWidgetView(entry: entry)
+        }
+        .configurationDisplayName("快捷指令面板")
+        .description("添加四个自定义快捷指令入口。")
+        .supportedFamilies([.systemSmall])
+        .contentMarginsDisabled()
+    }
+}
+
+struct ShortcutGridConfigurationIntent: WidgetConfigurationIntent {
+    static var title: LocalizedStringResource = "快捷指令面板"
+    static var description = IntentDescription("配置四个快捷指令名称，小组件会直接调起对应快捷指令。")
+
+    @Parameter(title: "左上快捷指令")
+    var topLeftShortcutName: String?
+
+    @Parameter(title: "右上快捷指令")
+    var topRightShortcutName: String?
+
+    @Parameter(title: "左下快捷指令")
+    var bottomLeftShortcutName: String?
+
+    @Parameter(title: "右下快捷指令")
+    var bottomRightShortcutName: String?
+}
+
+private struct ShortcutGridEntry: TimelineEntry {
+    let date: Date
+    let configuration: ShortcutGridConfigurationIntent
+}
+
+private struct ShortcutGridProvider: AppIntentTimelineProvider {
+
+    func placeholder(in context: Context) -> ShortcutGridEntry {
+        ShortcutGridEntry(date: .now, configuration: .preview)
+    }
+
+    func snapshot(
+        for configuration: ShortcutGridConfigurationIntent,
+        in context: Context
+    ) async -> ShortcutGridEntry {
+        ShortcutGridEntry(date: .now, configuration: configuration.withPreviewFallbacks)
+    }
+
+    func timeline(
+        for configuration: ShortcutGridConfigurationIntent,
+        in context: Context
+    ) async -> Timeline<ShortcutGridEntry> {
+        let entry = ShortcutGridEntry(date: .now, configuration: configuration.withPreviewFallbacks)
+        return Timeline(entries: [entry], policy: .never)
+    }
+}
+
+private extension ShortcutGridConfigurationIntent {
+
+    static var preview: ShortcutGridConfigurationIntent {
+        var configuration = ShortcutGridConfigurationIntent()
+        configuration.topLeftShortcutName = "快捷指令 1"
+        configuration.topRightShortcutName = "快捷指令 2"
+        configuration.bottomLeftShortcutName = "快捷指令 3"
+        configuration.bottomRightShortcutName = "快捷指令 4"
+        return configuration
+    }
+
+    var withPreviewFallbacks: ShortcutGridConfigurationIntent {
+        var configuration = self
+
+        if configuration.topLeftShortcutName.normalizedShortcutName == nil {
+            configuration.topLeftShortcutName = "快捷指令 1"
+        }
+
+        if configuration.topRightShortcutName.normalizedShortcutName == nil {
+            configuration.topRightShortcutName = "快捷指令 2"
+        }
+
+        if configuration.bottomLeftShortcutName.normalizedShortcutName == nil {
+            configuration.bottomLeftShortcutName = "快捷指令 3"
+        }
+
+        if configuration.bottomRightShortcutName.normalizedShortcutName == nil {
+            configuration.bottomRightShortcutName = "快捷指令 4"
+        }
+
+        return configuration
+    }
+}
+
+private extension Optional where Wrapped == String {
+
+    var normalizedShortcutName: String? {
+        guard let trimmed = self?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+            return nil
+        }
+
+        return trimmed
+    }
+}
+
+private enum ShortcutGridSlot: CaseIterable {
+    case topLeft
+    case topRight
+    case bottomLeft
+    case bottomRight
+
+    var fallbackTitle: String {
+        switch self {
+        case .topLeft:
+            return "快捷指令 1"
+        case .topRight:
+            return "快捷指令 2"
+        case .bottomLeft:
+            return "快捷指令 3"
+        case .bottomRight:
+            return "快捷指令 4"
+        }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .topLeft:
+            return "bolt.fill"
+        case .topRight:
+            return "sparkles"
+        case .bottomLeft:
+            return "command"
+        case .bottomRight:
+            return "play.fill"
+        }
+    }
+
+    var accentColor: Color {
+        switch self {
+        case .topLeft:
+            return Color(red: 1.00, green: 0.72, blue: 0.18)
+        case .topRight:
+            return Color(red: 0.20, green: 0.68, blue: 1.00)
+        case .bottomLeft:
+            return Color(red: 0.52, green: 0.42, blue: 1.00)
+        case .bottomRight:
+            return Color(red: 0.12, green: 0.78, blue: 0.42)
+        }
+    }
+
+    func shortcutName(from configuration: ShortcutGridConfigurationIntent) -> String {
+        switch self {
+        case .topLeft:
+            return configuration.topLeftShortcutName.normalizedShortcutName ?? fallbackTitle
+        case .topRight:
+            return configuration.topRightShortcutName.normalizedShortcutName ?? fallbackTitle
+        case .bottomLeft:
+            return configuration.bottomLeftShortcutName.normalizedShortcutName ?? fallbackTitle
+        case .bottomRight:
+            return configuration.bottomRightShortcutName.normalizedShortcutName ?? fallbackTitle
+        }
+    }
+
+    func shortcutURL(from configuration: ShortcutGridConfigurationIntent) -> URL {
+        let shortcutName = shortcutName(from: configuration)
+        let allowedCharacters = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
+        let encodedName = shortcutName.addingPercentEncoding(withAllowedCharacters: allowedCharacters) ?? shortcutName
+        return URL(string: "shortcuts://run-shortcut?name=\(encodedName)")!
+    }
+}
+
+private struct ShortcutGridWidgetView: View {
+    let entry: ShortcutGridEntry
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
+
+    var body: some View {
+        GeometryReader { proxy in
+            let shortestSide = min(proxy.size.width, proxy.size.height)
+            let gridSpacing = max(10, shortestSide * 0.075)
+            let padding = max(12, shortestSide * 0.085)
+
+            ZStack {
+                ShortcutGridGlassBackground()
+
+                LazyVGrid(columns: columns, spacing: gridSpacing) {
+                    ForEach(ShortcutGridSlot.allCases, id: \.self) { slot in
+                        Link(destination: slot.shortcutURL(from: entry.configuration)) {
+                            ShortcutGridButton(
+                                title: slot.shortcutName(from: entry.configuration),
+                                symbolName: slot.symbolName,
+                                accentColor: slot.accentColor
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text("运行\(slot.shortcutName(from: entry.configuration))"))
+                    }
+                }
+                .padding(padding)
+            }
+        }
+        .containerBackground(for: .widget) {
+            Color.clear
+        }
+    }
+}
+
+private struct ShortcutGridButton: View {
+    let title: String
+    let symbolName: String
+    let accentColor: Color
+
+    var body: some View {
+        VStack(spacing: 5) {
+            Image(systemName: symbolName)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 34, height: 34)
+                .background(
+                    Circle()
+                        .fill(accentColor)
+                        .overlay {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [.white.opacity(0.24), .clear],
+                                        startPoint: .topLeading,
+                                        endPoint: .center
+                                    )
+                                )
+                        }
+                )
+                .shadow(color: accentColor.opacity(0.28), radius: 6, x: 0, y: 3)
+
+            Text(title)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.92))
+                .lineLimit(1)
+                .minimumScaleFactor(0.62)
+        }
+        .frame(maxWidth: .infinity, minHeight: 54)
+        .padding(.horizontal, 5)
+        .padding(.vertical, 6)
+        .background {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(.white.opacity(0.10))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(.white.opacity(0.14), lineWidth: 1)
+                }
+        }
+        .glassEffect(.regular.tint(.white.opacity(0.05)), in: .rect(cornerRadius: 18))
+        .contentShape(.rect(cornerRadius: 18))
+    }
+}
+
+private struct ShortcutGridGlassBackground: View {
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 30, style: .continuous)
+            .fill(.ultraThinMaterial)
+            .opacity(0.74)
+            .overlay {
+                RoundedRectangle(cornerRadius: 30, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(0.26),
+                                .white.opacity(0.07),
+                                .white.opacity(0.02)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+            .overlay(alignment: .topLeading) {
+                RoundedRectangle(cornerRadius: 30, style: .continuous)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(0.68),
+                                .white.opacity(0.16),
+                                .clear
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            }
+            .glassEffect(.regular.tint(.white.opacity(0.12)), in: .rect(cornerRadius: 30))
     }
 }
