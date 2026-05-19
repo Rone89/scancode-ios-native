@@ -5,6 +5,7 @@ import WidgetKit
 struct ScanCodeWidgetsBundle: WidgetBundle {
     var body: some Widget {
         ScanWidget()
+        PaymentQuickWidget()
         ScanCodeLiveActivityWidget()
     }
 }

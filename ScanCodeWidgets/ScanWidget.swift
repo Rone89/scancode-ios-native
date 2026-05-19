@@ -9,7 +9,7 @@ struct ScanWidgetEntry: TimelineEntry {
 struct ScanWidgetProvider: TimelineProvider {
 
     func placeholder(in context: Context) -> ScanWidgetEntry {
-        ScanWidgetEntry(date: .now, actions: ScanAppAction.allCases)
+        ScanWidgetEntry(date: .now, actions: ScanAppAction.scanWidgetActions)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (ScanWidgetEntry) -> Void) {
@@ -17,7 +17,7 @@ struct ScanWidgetProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<ScanWidgetEntry>) -> Void) {
-        let entry = ScanWidgetEntry(date: .now, actions: ScanAppAction.allCases)
+        let entry = ScanWidgetEntry(date: .now, actions: ScanAppAction.scanWidgetActions)
         completion(Timeline(entries: [entry], policy: .never))
     }
 }
@@ -368,6 +368,7 @@ private extension ScanWidgetView {
         }
         .frame(width: size, height: size)
         .shadow(color: badgeShadow(for: action), radius: 10, x: 0, y: 5)
+        .accessibilityHidden(true)
     }
 
     @ViewBuilder
@@ -463,6 +464,11 @@ private extension ScanWidgetView {
                 Color(red: 0.22, green: 0.62, blue: 1.00),
                 Color(red: 0.12, green: 0.32, blue: 0.90)
             ]
+        case .openAlipay, .weChatPayCode, .alipayPayCode:
+            colors = [
+                Color(red: 0.24, green: 0.82, blue: 0.38),
+                Color(red: 0.08, green: 0.54, blue: 0.28)
+            ]
         }
 
         return LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -476,6 +482,8 @@ private extension ScanWidgetView {
             return .green.opacity(0.20)
         case .alipayScanner:
             return .blue.opacity(0.22)
+        case .openAlipay, .weChatPayCode, .alipayPayCode:
+            return .green.opacity(0.20)
         }
     }
 
@@ -487,6 +495,12 @@ private extension ScanWidgetView {
             return "微信"
         case .alipayScanner:
             return "支付宝"
+        case .openAlipay:
+            return "支付宝"
+        case .weChatPayCode:
+            return "微信"
+        case .alipayPayCode:
+            return "付款码"
         }
     }
 
@@ -498,6 +512,240 @@ private extension ScanWidgetView {
             return "扫一扫"
         case .alipayScanner:
             return "扫码"
+        case .openAlipay:
+            return "打开"
+        case .weChatPayCode:
+            return "付款码"
+        case .alipayPayCode:
+            return "支付宝"
         }
+    }
+}
+
+private struct PaymentQuickEntry: TimelineEntry {
+    let date: Date
+    let actions: [PaymentQuickAction]
+}
+
+private struct PaymentQuickProvider: TimelineProvider {
+
+    func placeholder(in context: Context) -> PaymentQuickEntry {
+        PaymentQuickEntry(date: .now, actions: PaymentQuickAction.allCases)
+    }
+
+    func getSnapshot(in context: Context, completion: @escaping (PaymentQuickEntry) -> Void) {
+        completion(placeholder(in: context))
+    }
+
+    func getTimeline(in context: Context, completion: @escaping (Timeline<PaymentQuickEntry>) -> Void) {
+        let entry = PaymentQuickEntry(date: .now, actions: PaymentQuickAction.allCases)
+        completion(Timeline(entries: [entry], policy: .never))
+    }
+}
+
+struct PaymentQuickWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "com.codex.scancode.payment-quick-actions", provider: PaymentQuickProvider()) { entry in
+            PaymentQuickWidgetView(entry: entry)
+        }
+        .configurationDisplayName("支付快捷入口")
+        .description("从桌面快速打开 ScanCode、支付宝、微信付款码和支付宝付款码。")
+        .supportedFamilies([.systemSmall])
+        .contentMarginsDisabled()
+    }
+}
+
+private enum PaymentQuickAction: String, CaseIterable {
+    case app
+    case alipay
+    case weChatPayCode
+    case alipayPayCode
+
+    var destination: URL {
+        switch self {
+        case .app:
+            return ScanAppAction.scanner.url
+        case .alipay:
+            return ScanAppAction.openAlipay.url
+        case .weChatPayCode:
+            return ScanAppAction.weChatPayCode.url
+        case .alipayPayCode:
+            return ScanAppAction.alipayPayCode.url
+        }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .app:
+            return "iphone"
+        case .alipay:
+            return "a.circle"
+        case .weChatPayCode:
+            return "qrcode"
+        case .alipayPayCode:
+            return "barcode.viewfinder"
+        }
+    }
+
+    var accessibilityLabel: String {
+        switch self {
+        case .app:
+            return "打开当前应用"
+        case .alipay:
+            return "打开支付宝"
+        case .weChatPayCode:
+            return "打开微信付款码"
+        case .alipayPayCode:
+            return "打开支付宝付款码"
+        }
+    }
+
+    var ringProgress: CGFloat {
+        switch self {
+        case .app:
+            return 0.88
+        case .alipay:
+            return 0.82
+        case .weChatPayCode:
+            return 0.34
+        case .alipayPayCode:
+            return 0.28
+        }
+    }
+
+    var ringRotation: Angle {
+        switch self {
+        case .app:
+            return .degrees(-92)
+        case .alipay:
+            return .degrees(-62)
+        case .weChatPayCode:
+            return .degrees(18)
+        case .alipayPayCode:
+            return .degrees(42)
+        }
+    }
+
+    var accentColor: Color {
+        switch self {
+        case .app:
+            return Color(red: 0.20, green: 0.88, blue: 0.40)
+        case .alipay:
+            return Color(red: 0.24, green: 0.90, blue: 0.44)
+        case .weChatPayCode:
+            return Color(red: 0.18, green: 0.78, blue: 0.36)
+        case .alipayPayCode:
+            return Color(red: 0.22, green: 0.82, blue: 0.40)
+        }
+    }
+}
+
+private struct PaymentQuickWidgetView: View {
+    let entry: PaymentQuickEntry
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 14),
+        GridItem(.flexible(), spacing: 14)
+    ]
+
+    var body: some View {
+        GeometryReader { proxy in
+            let shortestSide = min(proxy.size.width, proxy.size.height)
+            let side = max(48, shortestSide * 0.34)
+            let gridSpacing = max(12, shortestSide * 0.09)
+            let horizontalPadding = max(12, shortestSide * 0.08)
+            let verticalPadding = max(11, shortestSide * 0.075)
+
+            ZStack {
+                background
+
+                LazyVGrid(columns: columns, spacing: gridSpacing) {
+                    ForEach(entry.actions, id: \.rawValue) { action in
+                        Link(destination: action.destination) {
+                            PaymentQuickButton(action: action, side: side)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text(action.accessibilityLabel))
+                    }
+                }
+                .padding(.horizontal, horizontalPadding)
+                .padding(.vertical, verticalPadding)
+            }
+        }
+        .containerBackground(for: .widget) {
+            Color.clear
+        }
+    }
+
+    private var background: some View {
+        RoundedRectangle(cornerRadius: 30, style: .continuous)
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.35, green: 0.43, blue: 0.35).opacity(0.54),
+                        Color(red: 0.23, green: 0.31, blue: 0.26).opacity(0.66),
+                        Color(red: 0.20, green: 0.26, blue: 0.22).opacity(0.60)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: 30, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .opacity(0.34)
+            }
+            .overlay(alignment: .topLeading) {
+                RoundedRectangle(cornerRadius: 30, style: .continuous)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(0.42),
+                                .white.opacity(0.10),
+                                .clear
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            }
+            .overlay(alignment: .bottomTrailing) {
+                RoundedRectangle(cornerRadius: 30, style: .continuous)
+                    .stroke(.white.opacity(0.16), lineWidth: 0.8)
+                    .blur(radius: 0.4)
+            }
+    }
+}
+
+private struct PaymentQuickButton: View {
+    let action: PaymentQuickAction
+    let side: CGFloat
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.white.opacity(0.13), lineWidth: side * 0.11)
+
+            Circle()
+                .trim(from: 0, to: action.ringProgress)
+                .stroke(
+                    action.accentColor,
+                    style: StrokeStyle(lineWidth: side * 0.11, lineCap: .round)
+                )
+                .rotationEffect(action.ringRotation)
+                .shadow(color: action.accentColor.opacity(0.36), radius: 4, x: 0, y: 1)
+
+            Circle()
+                .stroke(.white.opacity(0.08), lineWidth: 1)
+                .padding(side * 0.13)
+
+            Image(systemName: action.symbolName)
+                .font(.system(size: side * 0.34, weight: .semibold))
+                .foregroundStyle(.white)
+                .symbolRenderingMode(.monochrome)
+        }
+        .frame(width: side, height: side)
+        .contentShape(Circle())
     }
 }
